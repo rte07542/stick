@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <title>stick</title>
+    <link href="css/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="app">
+
+    <div class="layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sideHead">
+                <div class="sideBrand">
+                    <img alt="stick" class="stickLogo" src="img/stick.svg">
+                </div>
+                <button aria-label="사이드바 토글" class="iconBtn sideToggle" id="toggleSidebar" type="button">
+                    <img alt="" class="sideIcon" src="img/sidebar-icon.svg">
+                </button>
+            </div>
+            <div class="sideInfo">
+                <div class="sideControls">
+                        <label class="pill pillDrop" id="channelPill">
+                            <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="channelBtn"
+                                    type="button">
+                                <span id="channelLabel">게임A</span>
+                            </button>
+
+                            <div class="dropMenu hidden" id="channelMenu" role="listbox" tabindex="-1">
+                                <button class="dropItem is-active" data-value="gameA" role="option" type="button">게임A
+                                </button>
+                                <button class="dropItem" data-value="gameB" role="option" type="button">게임B</button>
+                            </div>
+
+                            <select hidden id="channelSelect">
+                                <option value="gameA">게임A</option>
+                                <option value="gameB">게임B</option>
+                            </select>
+                        </label>
+
+                        <span aria-hidden="true" class="segDiv"></span>
+                </div>
+            </div>
+            <nav class="roomList" id="roomList"></nav>
+            <div class="sideFooter">
+                <button aria-label="내 계정" class="userCard" id="meBtn" type="button">
+                    <img alt="profile" class="avatar" id="meAvatar" src="img/user-icon.svg">
+
+                    <div class="userMeta">
+                        <div class="userName" id="meName">aaa</div>
+                    </div>
+                </button>
+            </div>
+
+        </aside>
+
+        <div aria-orientation="vertical" class="splitter" id="splitter" role="separator" tabindex="0"></div>
+
+        <!-- MAIN -->
+        <main class="main">
+            <div class="boardTop">
+                <div class="roomHero">
+                    <div class="roomTitleLine">
+                        <div class="roomName" id="roomName">#빌드</div>
+                        <div class="roomDesc" id="roomDesc" contenteditable="false"></div>
+                    </div>
+
+                    <div class="roomSummary" id="roomSummary">
+                        <span class="sum-item">메모 <b id="memoCount">0</b>개</span>
+                        <span class="sum-divider">•</span>
+                        <span class="sum-item"><b id="memberCount">0</b>명 참여</span>
+                        <span class="sum-divider">•</span>
+                        <span class="sum-item">마지막 수정 <span id="lastModified">00/00 00:00</span></span>
+                    </div>
+                </div>
+
+                <div class="topRight">
+                    <!-- 멤버 패널 토글 버튼 (오른쪽 패널 열기용) -->
+                    <button aria-label="멤버 패널" class="iconBtn" id="membersToggleBtn" type="button">
+                        <img alt="" class="memberIcon" src="img/member-icon.svg">
+                    </button>
+
+                    <div class="search">
+                        <div class="searchWrap" id="searchWrap">
+                            <input autocomplete="off" id="searchInput" placeholder="이 방에서 검색..."/>
+                            <button aria-label="검색 지우기" class="searchClear" id="searchClear" type="button">✕</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="boardWrap" id="boardWrap">
+                <div class="board" id="board"></div>
+
+                <!-- empty state (빈 방일 때만 중앙에: 문구 위 + 입력바 아래) -->
+                <div class="emptyState" hidden id="emptyState">
+                    <div class="emptyStack">
+                        <div class="emptyText">새 메모를 시작해보자</div>
+
+                        <div class="composer is-empty" id="composer">
+                            <div class="composerRow">
+                                <div class="composerBar">
+                                    <div class="composerLeft">
+                                        <button aria-label="추가" class="composerPlus" id="composerPlus" type="button">+
+                                        </button>
+                                        <input accept="image/*" hidden id="composerFile" multiple type="file"/>
+
+                                        <textarea class="quickInput" id="quickInput"
+                                                  placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
+
+                                        <div class="color-pick" id="quickColors">
+                                            <div class="swatch white selected" data-color="calm1" title="화이트"></div>
+                                            <div class="swatch blue" data-color="calm2" title="블루"></div>
+                                            <div class="swatch green" data-color="calm3" title="그린"></div>
+                                            <div class="swatch coral" data-color="calm4" title="오렌지"></div>
+                                            <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ✅ onboarding state (채널 0개일 때만 중앙에) -->
+                <div class="emptyState" hidden id="onboardingState">
+                    <div class="emptyStack">
+                        <div class="emptyText">아직 소속된 채널이 없어</div>
+
+                        <div class="composer">
+                            <div class="composerBar" style="justify-content: flex-start;">
+                                <div class="composerLeft"
+                                     style="flex-direction: column; align-items: stretch; gap: 10px;">
+                                    <input class="quickInput" id="inviteCodeInput" placeholder="초대코드 입력"
+                                           style="height: 44px;"/>
+                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                        <button class="btn primary" id="joinByCodeBtn" type="button">참가</button>
+                                    </div>
+
+                                    <div style="height:1px; background: rgba(0,0,0,.08); margin: 6px 0;"></div>
+
+                                    <input class="quickInput" id="newChannelNameInput" placeholder="새 채널 이름"
+                                           style="height: 44px;"/>
+                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
+                                        <button class="btn" id="createChannelBtn" type="button">채널 만들기</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hint" style="text-align:center;">
+                            초대코드로 들어가거나, 네가 채널을 만들면 됨.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ 메모가 1개 이상일 때만 쓸 하단 composer -->
+            <div class="dock" hidden id="dock">
+                <div class="composerRow">
+                    <div class="composerBar">
+                        <div class="composerLeft">
+                            <button aria-label="추가" class="composerPlus" id="composerPlusDock" type="button">+</button>
+                            <input accept="image/*" hidden id="composerFileDock" multiple type="file"/>
+                            <textarea class="quickInput" id="quickInputDock"
+                                      placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
+
+                            <div aria-label="색상 선택" class="color-pick" id="newColors">
+                                <div class="swatch white selected" data-color="calm1" title="화이트"></div>
+                                <div class="swatch blue" data-color="calm2" title="블루"></div>
+                                <div class="swatch green" data-color="calm3" title="그린"></div>
+                                <div class="swatch coral" data-color="calm4" title="오렌지"></div>
+                                <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside aria-label="멤버 목록" class="memberPanel" id="memberPanel">
+                <div class="memberHead">
+                    <div class="memberTitle" id="memberTitle">멤버</div>
+                    <button aria-label="닫기" class="iconBtn memberClose" id="memberClose" type="button">✕</button>
+                </div>
+
+                <div class="memberPanelBody" id="memberPanelBody"></div>
+            </aside>
+
+        </main>
+    </div>
+</div>
+
+<div aria-hidden="true" class="overlay hidden noDim" id="overlay">
+    <div class="dialog sidePanel" id="sidePanel">
+        <div class="dialogHead">
+            <div class="dialogTitle" id="panelTitle"></div>
+            <button aria-label="닫기" class="dialogClose" id="panelClose" type="button">✕</button>
+        </div>
+        <div class="dialogBody" id="panelBody"></div>
+    </div>
+    <div id="modalRoot"></div>
+</div>
+
+
+<script src="js/app.js"></script>
+</body>
+</html>

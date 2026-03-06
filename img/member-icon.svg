@@ -1,0 +1,15 @@
+<svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- back person -->
+  <g fill="#374151" opacity="0.6">
+    <circle cx="68" cy="36" r="13"/>
+    <path d="M46 84C46 68 56 60 68 60C80 60 90 68 90 84V90H46V84Z"/>
+  </g>
+
+  <!-- front person -->
+  <g fill="#374151">
+    <circle cx="38" cy="34" r="16"/>
+    <path d="M12 86C12 66 28 58 38 58C52 58 66 66 66 86V92H12V86Z"/>
+  </g>
+
+</svg>

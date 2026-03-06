@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick | signup</title>
+
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/signup.css" />
+</head>
+<body>
+
+<div class="signup">
+    <main class="signupCard" role="main">
+        <header class="signupHead">
+            <h1 class="signupTitle">stick</h1>
+            <p class="signupSub">회원가입</p>
+        </header>
+
+        <section class="signupBody">
+            <label class="signupLabel" for="signupId">
+                아이디
+                <input id="signupId" class="signupInput" type="text" autocomplete="username" />
+            </label>
+
+            <label class="signupLabel" for="signupPw">
+                비밀번호
+                <input id="signupPw" class="signupInput" type="password" autocomplete="new-password" />
+            </label>
+
+            <label class="signupLabel" for="signupPw2">
+                비밀번호 확인
+                <input id="signupPw2" class="signupInput" type="password" autocomplete="new-password" />
+            </label>
+
+            <label class="signupLabel" for="signupNick">
+                닉네임
+                <input id="signupNick" class="signupInput" type="text" autocomplete="nickname" />
+            </label>
+        </section>
+
+        <section class="signupAgreement">
+            <label class="agreeCheck">
+                <input type="checkbox" id="agreeTerms" />
+                <span class="agreeText">
+      본인은 만 13세 이상이며,
+      <button type="button" class="inlineLink" id="openTerms">이용약관</button> 및
+      <button type="button" class="inlineLink" id="openPrivacy">개인정보 처리방침</button>에 동의합니다.
+    </span>
+            </label>
+
+            <p class="agreeDesc">
+                본 서비스는 만 13세 미만 아동을 대상으로 하지 않습니다.
+                연령 요건을 충족하지 않는 계정은 삭제될 수 있습니다.
+            </p>
+        </section>
+
+
+        <button id="signupBtn" class="btn primary" type="button" disabled>회원가입</button>
+
+        </section>
+
+
+        <footer class="signupFoot">
+            <p class="signupHint">
+                이미 계정이 있나요?
+                <a href="./index.html" class="signupLink">돌아가기</a>
+            </p>
+        </footer>
+    </main>
+</div>
+
+<div id="overlay" class="overlay hidden" aria-hidden="true">
+    <div class="modalRoot">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="policyTitle">
+            <div class="dialogHead">
+                <div id="policyTitle" class="dialogTitle">약관</div>
+                <button id="policyClose" class="dialogClose" type="button" aria-label="닫기">✕</button>
+            </div>
+
+            <div class="dialogBody">
+                <div id="policyContent" class="policyContent">
+                    <!-- JS가 내용 채움 -->
+                </div>
+            </div>
+
+            <div class="dialogActions">
+                <button id="policyOk" class="btn primary" type="button">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/signup.js"></script>
+</body>
+</html>

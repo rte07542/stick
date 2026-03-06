@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick | invite</title>
+
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+
+<div class="home">
+    <main class="homeCard" role="main">
+        <header class="homeHead">
+            <h1 class="homeTitle">stick</h1>
+        </header>
+
+        <section class="homeBody">
+
+            <input
+                    id="inviteCode"
+                    class="inviteInput input"
+                    type="text"
+                    placeholder="초대코드"
+                    autocomplete="off"
+            />
+        </section>
+
+        <section class="homeActions">
+            <button id="enterBtn" class="btn primary" type="button">
+                입장하기
+            </button>
+        </section>
+
+        <footer class="homeFoot">
+            <p class="homeHint">
+                이미 계정이 있으신가요?
+                <button class="btn linkBtn" data-login-open>로그인</button>
+            </p>
+        </footer>
+
+    </main>
+</div>
+
+<div class="overlay home-overlay hidden" aria-hidden="true" data-login-overlay>
+    <div class="dialog loginDialog" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="dialogBody">
+            <div id="loginTitle" class="dialogTitle">로그인</div>
+            <button class="dialogClose" type="button" aria-label="닫기" data-login-close>✕</button>
+            <div class="loginForm">
+                <label class="loginLabel">
+                    아이디
+                    <input id="loginId" class="loginInput input" type="text" autocomplete="username" />
+                </label>
+
+                <label class="loginLabel">
+                    비밀번호
+                    <input id="loginPw" class="loginInput input" type="password" autocomplete="current-password" />
+                </label>
+
+                <div class="loginActions">
+                    <button id="loginSubmitBtn" class="btn primary" type="button">로그인</button>
+                    <button id="discordLoginBtn" class="btn" type="button">Discord로 로그인</button>
+                </div>
+                <div class="loginMeta">
+                    <span>아직 계정이 없으신가요?</span>
+                    <a href="./signup.html" class="loginLink">회원가입</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="js/index.js"></script>
+
+
+</body>
+</html>

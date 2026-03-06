@@ -1,0 +1,236 @@
+:root{
+  --home-input-w: 320px;
+  --home-lift-y: -6vh;
+
+  /* input 공통 */
+  --input-h: 44px;
+  --input-r: 14px;
+  --card-r: 20px;
+}
+
+/* =========================
+   HOME PAGE LAYOUT
+========================= */
+
+.home{
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}
+
+/* 중앙 카드 (살짝 위로) */
+.homeCard{
+  transform: translateY(var(--home-lift-y));
+
+  width: min(420px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--card-r);
+  padding: 32px 28px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+
+  box-shadow: 0 18px 40px rgba(0,0,0,.12);
+}
+
+/* =========================
+   HOME HEADER
+========================= */
+
+.homeHead{ text-align: center; }
+
+.homeTitle{
+  margin: 0;
+  font-size: 22px;
+  font-weight: 1000;
+  color: #000;
+  letter-spacing: -0.2px;
+}
+
+/* =========================
+   HOME BODY
+========================= */
+
+.homeBody{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.homeLabel{
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+/* =========================
+   INPUTS (공통 스타일)
+========================= */
+
+.input{
+  height: var(--input-h);
+  border-radius: var(--input-r);
+  border: 1px solid var(--line);
+  padding: 0 14px;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  background: #fff;
+  outline: none;
+}
+
+.input:focus{
+  border-color: rgba(0,0,0,.35);
+}
+
+/* 홈 초대코드 입력은 폭 고정 */
+.inviteInput{
+  width: var(--home-input-w);
+}
+
+/* 로그인 입력은 부모 폭에 맞춤 */
+.loginInput{
+  width: 100%;
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.homeActions{ display: flex; }
+.homeActions .btn{ width: 100%; }
+
+/* =========================
+   FOOTER LINK STYLE
+========================= */
+
+.homeFoot{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 버튼을 링크처럼 보이게 (로그인 같은거) */
+.linkBtn{
+  all: unset;
+  cursor: pointer;
+
+  color: #111827;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.linkBtn:hover{
+  text-decoration: underline;
+}
+
+/* =========================
+   MODAL (HOME TONE)
+========================= */
+
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 200;
+}
+
+.overlay.hidden{ display: none; }
+
+.modalRoot{
+  width: auto;
+  max-width: none;
+}
+
+/* 로그인 모달 박스 */
+.loginDialog{
+  width: var(--home-input-w);
+  transform: translateY(var(--home-lift-y));
+  border-radius: var(--card-r);
+}
+
+/* 로그인 폼 */
+.loginForm{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.loginLabel{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.loginActions{
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.loginActions .btn{ flex: 1 1 160px; }
+
+/* =========================
+   LOGIN MODAL HEADER (Title + Close)
+========================= */
+
+/* 모달 바디를 닫기버튼 absolute 기준으로 */
+.home-overlay .dialogBody{
+  position: relative;
+  padding-top: 16px;
+}
+
+.home-overlay #loginTitle{
+  font-weight: 1000;
+  font-size: 16px;
+  line-height: 1;
+  margin: 0 36px 12px 0; /* 오른쪽 X 자리 */
+}
+
+/* 닫기 버튼 */
+.home-overlay [data-login-close]{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 16px;
+  font-weight: 1000;
+  line-height: 1;
+
+  opacity: .75;
+}
+
+.home-overlay [data-login-close]:hover{
+  background: rgba(0,0,0,.06);
+  opacity: 1;
+}
+
+.home-overlay [data-login-close]:focus-visible{
+  outline: 2px solid rgba(17,24,39,.35);
+  outline-offset: 2px;
+}

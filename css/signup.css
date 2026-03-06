@@ -1,0 +1,222 @@
+/* =========================
+   TOKENS (page-local)
+========================= */
+:root{
+  --signup-w: 320px;     /* home input 폭과 맞추려면 여기만 수정 */
+  --signup-lift-y: -6vh;
+  --input-h: 44px;
+  --input-r: 14px;
+  --card-r: 20px;
+}
+
+/* =========================
+   PAGE WRAP
+========================= */
+.signup{
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}
+
+/* =========================
+   CARD
+========================= */
+.signupCard{
+  transform: translateY(var(--signup-lift-y));
+
+  width: min(420px, 92vw);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--card-r);
+
+  padding: 32px 28px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.12);
+
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* =========================
+   HEADER
+========================= */
+.signupHead{ text-align: center; }
+
+.signupTitle{
+  margin: 0;
+  font-size: 22px;
+  font-weight: 1000;
+  color: #000;
+  letter-spacing: -0.2px;
+}
+
+.signupSub{
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+/* =========================
+   BODY / INPUTS
+========================= */
+.signupBody{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signupLabel{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.signupInput{
+  width: var(--signup-w);
+  height: var(--input-h);
+
+  border-radius: var(--input-r);
+  border: 1px solid var(--line);
+  padding: 0 12px;
+
+  font-size: 13px;
+  font-weight: 800;
+  background: #fff;
+
+  outline: none;
+}
+
+.signupInput:focus{
+  border-color: rgba(0,0,0,.35);
+}
+
+/* =========================
+   AGREEMENT
+========================= */
+.signupAgreement{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agreeCheck{
+  width: var(--signup-w);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  padding: 10px 12px;
+  border-radius: var(--input-r);
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.75);
+}
+
+.agreeCheck input{ margin-top: 2px; }
+
+.agreeText{
+  font-size: 12px;
+  font-weight: 900;
+  color: #111827;
+  line-height: 1.45;
+}
+
+.agreeDesc{
+  width: var(--signup-w);
+  margin: 0;
+
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* 약관/개인정보 버튼: 버튼이지만 링크처럼 */
+.inlineLink{
+  all: unset;
+  cursor: pointer;
+
+  font-weight: 1000;
+  color: #111827;
+  text-decoration: underline;
+}
+
+.inlineLink:hover{ opacity: .85; }
+
+/* =========================
+   ACTIONS
+========================= */
+.signupActions{
+  width: var(--signup-w);
+  display: flex;
+}
+
+.signupActions .btn{ width: 100%; }
+
+.signupActions .btn:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================
+   FOOTER
+========================= */
+.signupFoot{
+  display: flex;
+  justify-content: center;
+}
+
+.signupHint{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  text-align: center;
+}
+
+.signupLink{
+  font-weight: 1000;
+  color: #111827;
+  text-decoration: underline;
+}
+
+.signupLink:hover{ opacity: .85; }
+
+/* =========================
+   MODAL (policy)
+   ⚠️ 공용 .modalRoot / .dialog를 직접 건드리지 말고
+   signup에서만 적용되게 스코프를 걸어라.
+========================= */
+
+/* signup 페이지의 overlay 안 dialog만 폭/위치 조정 */
+.signup .modalRoot{
+  width: auto;
+  max-width: none;
+}
+
+.signup .dialog{
+  width: var(--signup-w);
+  transform: translateY(var(--signup-lift-y));
+}
+
+/* 약관 내용 스크롤 */
+.policyContent{
+  max-height: min(52vh, 360px);
+  overflow: auto;
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: #111827;
+}
+
+/* 낮은 화면에서 덜 올리기 */
+@media (max-height: 700px){
+  :root{ --signup-lift-y: -3vh; }
+}
