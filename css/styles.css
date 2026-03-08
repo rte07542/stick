@@ -96,7 +96,7 @@ body{
   margin-bottom: 10px;
 }
 
-.roomList{
+.boardList{
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -106,7 +106,7 @@ body{
   padding-right: 4px;
 }
 
-.roomBtn{
+.boardBtn{
   width: 100%;
   border: none;
   background: transparent;
@@ -120,21 +120,21 @@ body{
   align-items: center;
 }
 
-.roomBtn:hover{
+.boardBtn:hover{
   background: #f3f4f6;
 }
 
-.roomBtn.active .roomHash{
+.boardBtn.active .boardHash{
   font-weight: 750;
   font-size: 16px;
 }
 
-.roomHash{
+.boardHash{
   font-weight: 500;
   font-size: 14px;
 }
 
-.roomCount{
+.boardCount{
   color: var(--muted);
   font-weight: 800;
   font-size: 12px;
@@ -161,19 +161,19 @@ body{
   justify-content: space-between;
 }
 
-.roomTitle{
+.boardTitle{
   display: flex;
   align-items: center;
   gap: 4px;
   flex: 1;
 }
 
-.roomName{
+.boardName{
   white-space: nowrap;
   font-weight: 1000;
 }
 
-.roomMeta{
+.boardMeta{
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -341,23 +341,23 @@ body{
   text-overflow: ellipsis;
 }
 
-.composerBar.calm1{
+.composerBar.cream{
   background: rgba(249,246,241,.95);
 }
 
-.composerBar.calm2{
+.composerBar.blue{
   background: rgba(191,212,234,.90);
 }
 
-.composerBar.calm3{
+.composerBar.sage{
   background: rgba(199,220,212,.90);
 }
 
-.composerBar.calm4{
+.composerBar.coral{
   background: rgba(217,165,135,.90);
 }
 
-.composerBar.calm5{
+.composerBar.lavender{
   background: rgba(215,203,230,.90);
 }
 
@@ -476,27 +476,27 @@ mark{
   padding: 3px 0;
 }
 
-.dialog.noteDialog.calm1{
+.dialog.noteDialog.cream{
   background: #F9F6F1;
   color: #111827;
 }
 
-.dialog.noteDialog.calm2{
+.dialog.noteDialog.blue{
   background: #BFD4EA;
   color: #111827;
 }
 
-.dialog.noteDialog.calm3{
+.dialog.noteDialog.sage{
   background: #C7DCD4;
   color: #111827;
 }
 
-.dialog.noteDialog.calm4{
+.dialog.noteDialog.coral{
   background: #D9A587;
   color: #111827;
 }
 
-.dialog.noteDialog.calm5{
+.dialog.noteDialog.lavender{
   background: #D7CBE6;
   color: #111827;
 }
@@ -709,27 +709,27 @@ mark{
   width: 560px;
 }
 
-.note.calm1{
+.note.cream{
   background: #F9F6F1;
   color: #111827;
 }
 
-.note.calm2{
+.note.blue{
   background: #BFD4EA;
   color: #111827;
 }
 
-.note.calm3{
+.note.sage{
   background: #C7DCD4;
   color: #111827;
 }
 
-.note.calm4{
+.note.coral{
   background: #D9A587;
   color: #111827;
 }
 
-.note.calm5{
+.note.lavender{
   background: #D7CBE6;
   color: #111827;
 }
@@ -826,7 +826,7 @@ mark{
 }
 
 .layout.sidebar-collapsed .sideTitle,
-.layout.sidebar-collapsed .roomList{
+.layout.sidebar-collapsed .boardList{
   display: none;
 }
 
@@ -1230,7 +1230,7 @@ mark{
   align-items: center;
 }
 
-.sideControls #channelPill{
+.sideControls #spacePill{
   flex: 7 1 0;
   min-width: 0;
 }
@@ -1240,7 +1240,7 @@ mark{
   min-width: 0;
 }
 
-#channelLabel{
+#spaceLabel{
   display: block;
   max-width: 100%;
   white-space: nowrap;
@@ -1535,7 +1535,7 @@ mark{
   width: 100%;
 }
 
-.segPill #channelPill{
+.segPill #spacePill{
   flex: 7 1 0;
   min-width: 0;
 }
@@ -1627,7 +1627,7 @@ mark{
   justify-content: space-between;
 }
 
-.roomHero{
+.boardHero{
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1635,19 +1635,19 @@ mark{
   min-width: 0;
 }
 
-.roomTitleLine{
+.boardTitleLine{
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.roomName{
+.boardName{
   font-size: 20px;
   font-weight: 800;
   white-space: nowrap;
 }
 
-#roomDesc{
+#boardDesc{
   min-height: 24px;
   min-width: 150px;
   padding: 4px 8px;
@@ -1661,7 +1661,7 @@ mark{
   transition: background 0.2s;
 }
 
-#roomDesc:empty::before{
+#boardDesc:empty::before{
   content: "✎ 설명을 입력하세요";
   color: var(--muted);
   opacity: 0.6;
@@ -1669,17 +1669,17 @@ mark{
   font-style: italic;
 }
 
-#roomDesc:hover{
+#boardDesc:hover{
   background: rgba(0, 0, 0, 0.05);
 }
 
-#roomDesc[contenteditable="true"]{
+#boardDesc[contenteditable="true"]{
   background: #fff;
   outline: 2px solid #3b82f6;
   cursor: text;
 }
 
-.roomSummary{
+.boardSummary{
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1687,7 +1687,7 @@ mark{
   font-size: 12px;
 }
 
-.roomSummary b{
+.boardSummary b{
   color: var(--text);
   font-weight: 700;
 }

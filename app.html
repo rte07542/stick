@@ -22,19 +22,19 @@
             </div>
             <div class="sideInfo">
                 <div class="sideControls">
-                        <label class="pill pillDrop" id="channelPill">
-                            <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="channelBtn"
+                        <label class="pill pillDrop" id="spacePill">
+                            <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
                                     type="button">
-                                <span id="channelLabel">게임A</span>
+                                <span id="spaceLabel">게임A</span>
                             </button>
 
-                            <div class="dropMenu hidden" id="channelMenu" role="listbox" tabindex="-1">
+                            <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1">
                                 <button class="dropItem is-active" data-value="gameA" role="option" type="button">게임A
                                 </button>
                                 <button class="dropItem" data-value="gameB" role="option" type="button">게임B</button>
                             </div>
 
-                            <select hidden id="channelSelect">
+                            <select hidden id="spaceSelect">
                                 <option value="gameA">게임A</option>
                                 <option value="gameB">게임B</option>
                             </select>
@@ -43,7 +43,7 @@
                         <span aria-hidden="true" class="segDiv"></span>
                 </div>
             </div>
-            <nav class="roomList" id="roomList"></nav>
+            <nav class="boardList" id="boardList"></nav>
             <div class="sideFooter">
                 <button aria-label="내 계정" class="userCard" id="meBtn" type="button">
                     <img alt="profile" class="avatar" id="meAvatar" src="img/user-icon.svg">
@@ -61,13 +61,13 @@
         <!-- MAIN -->
         <main class="main">
             <div class="boardTop">
-                <div class="roomHero">
-                    <div class="roomTitleLine">
-                        <div class="roomName" id="roomName">#빌드</div>
-                        <div class="roomDesc" id="roomDesc" contenteditable="false"></div>
+                <div class="boardHero">
+                    <div class="boardTitleLine">
+                        <div class="boardName" id="boardName">#빌드</div>
+                        <div class="boardDesc" id="boardDesc" contenteditable="false"></div>
                     </div>
 
-                    <div class="roomSummary" id="roomSummary">
+                    <div class="boardSummary" id="boardSummary">
                         <span class="sum-item">메모 <b id="memoCount">0</b>개</span>
                         <span class="sum-divider">•</span>
                         <span class="sum-item"><b id="memberCount">0</b>명 참여</span>
@@ -84,7 +84,7 @@
 
                     <div class="search">
                         <div class="searchWrap" id="searchWrap">
-                            <input autocomplete="off" id="searchInput" placeholder="이 방에서 검색..."/>
+                            <input autocomplete="off" id="searchInput" placeholder="이 보드에서 검색..."/>
                             <button aria-label="검색 지우기" class="searchClear" id="searchClear" type="button">✕</button>
                         </div>
                     </div>
@@ -94,7 +94,7 @@
             <div class="boardWrap" id="boardWrap">
                 <div class="board" id="board"></div>
 
-                <!-- empty state (빈 방일 때만 중앙에: 문구 위 + 입력바 아래) -->
+                <!-- empty state (빈 보드일 때만 중앙에: 문구 위 + 입력바 아래) -->
                 <div class="emptyState" hidden id="emptyState">
                     <div class="emptyStack">
                         <div class="emptyText">새 메모를 시작해보자</div>
@@ -111,11 +111,11 @@
                                                   placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                                         <div class="color-pick" id="quickColors">
-                                            <div class="swatch white selected" data-color="calm1" title="화이트"></div>
-                                            <div class="swatch blue" data-color="calm2" title="블루"></div>
-                                            <div class="swatch green" data-color="calm3" title="그린"></div>
-                                            <div class="swatch coral" data-color="calm4" title="오렌지"></div>
-                                            <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+                                            <div class="swatch white selected" data-color="cream" title="화이트"></div>
+                                            <div class="swatch blue" data-color="blue" title="블루"></div>
+                                            <div class="swatch green" data-color="sage" title="그린"></div>
+                                            <div class="swatch coral" data-color="coral" title="오렌지"></div>
+                                            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -124,10 +124,10 @@
                     </div>
                 </div>
 
-                <!-- ✅ onboarding state (채널 0개일 때만 중앙에) -->
+                <!-- ✅ onboarding state (스페이스 0개일 때만 중앙에) -->
                 <div class="emptyState" hidden id="onboardingState">
                     <div class="emptyStack">
-                        <div class="emptyText">아직 소속된 채널이 없어</div>
+                        <div class="emptyText">아직 소속된 스페이스이 없어</div>
 
                         <div class="composer">
                             <div class="composerBar" style="justify-content: flex-start;">
@@ -141,17 +141,17 @@
 
                                     <div style="height:1px; background: rgba(0,0,0,.08); margin: 6px 0;"></div>
 
-                                    <input class="quickInput" id="newChannelNameInput" placeholder="새 채널 이름"
+                                    <input class="quickInput" id="newSpaceNameInput" placeholder="새 스페이스 이름"
                                            style="height: 44px;"/>
                                     <div style="display:flex; gap:10px; justify-content:flex-end;">
-                                        <button class="btn" id="createChannelBtn" type="button">채널 만들기</button>
+                                        <button class="btn" id="createSpaceBtn" type="button">스페이스 만들기</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="hint" style="text-align:center;">
-                            초대코드로 들어가거나, 네가 채널을 만들면 됨.
+                            초대코드로 들어가거나, 네가 스페이스을 만들면 됨.
                         </div>
                     </div>
                 </div>
@@ -168,11 +168,11 @@
                                       placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                             <div aria-label="색상 선택" class="color-pick" id="newColors">
-                                <div class="swatch white selected" data-color="calm1" title="화이트"></div>
-                                <div class="swatch blue" data-color="calm2" title="블루"></div>
-                                <div class="swatch green" data-color="calm3" title="그린"></div>
-                                <div class="swatch coral" data-color="calm4" title="오렌지"></div>
-                                <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+                                <div class="swatch white selected" data-color="cream" title="화이트"></div>
+                                <div class="swatch blue" data-color="blue" title="블루"></div>
+                                <div class="swatch green" data-color="sage" title="그린"></div>
+                                <div class="swatch coral" data-color="coral" title="오렌지"></div>
+                                <div class="swatch purple" data-color="lavender" title="퍼플"></div>
                             </div>
                         </div>
                     </div>

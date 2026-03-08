@@ -21,15 +21,15 @@ const el = {
   panelBody: qs("#panelBody"),
   panelClose: qs("#panelClose"),
 
-  roomList: qs("#roomList"),
-  roomName: qs("#roomName"),
-  roomDesc: qs("#roomDesc"),
+  boardList: qs("#boardList"),
+  boardName: qs("#boardName"),
+  boardDesc: qs("#boardDesc"),
 
-  channelSelect: qs("#channelSelect"),
-  channelBtn: qs("#channelBtn"),
-  channelLabel: qs("#channelLabel"),
-  channelMenu: qs("#channelMenu"),
-  channelPill: qs("#channelPill"),
+  spaceSelect: qs("#spaceSelect"),
+  spaceBtn: qs("#spaceBtn"),
+  spaceLabel: qs("#spaceLabel"),
+  spaceMenu: qs("#spaceMenu"),
+  spacePill: qs("#spacePill"),
 
   searchInput: qs("#searchInput"),
   searchWrap: qs("#searchWrap"),
@@ -56,8 +56,8 @@ const el = {
   onboardingState: qs("#onboardingState"),
   inviteCodeInput: qs("#inviteCodeInput"),
   joinByCodeBtn: qs("#joinByCodeBtn"),
-  newChannelNameInput: qs("#newChannelNameInput"),
-  createChannelBtn: qs("#createChannelBtn"),
+  newSpaceNameInput: qs("#newSpaceNameInput"),
+  createSpaceBtn: qs("#createSpaceBtn"),
 
   membersToggleBtn: qs("#membersToggleBtn"),
   memberPanel: qs("#memberPanel"),
@@ -72,7 +72,7 @@ const el = {
 // =========================
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 420;
-const COLOR_CLASSES = ["calm1", "calm2", "calm3", "calm4", "calm5"];
+const COLOR_CLASSES = ["cream", "blue", "sage", "coral", "lavender"];
 const MAX_ATTACH = 4;
 
 let overlayCleanup = null; // 현재 열린 오버레이(모달/패널) 닫힐 때 실행할 정리 함수
@@ -88,16 +88,16 @@ let lastSidebarW = null;
 // =========================
 const state = {
   me: "aaa",
-  channelId: "gameA",
-  roomId: "build",
+  spaceId: "gameA",
+  boardId: "build",
   search: "",
-  quickColor: "calm1",
+  quickColor: "cream",
   data: {
-    channels: {
-      gameA: { name: "게임A", rooms: ["build", "boss", "item", "bug"], members: ["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"] },
-      gameB: { name: "게임B", rooms: ["tips", "meta", "craft"], members: ["aaa", "bbb", "ccc"] }
+    spaces: {
+      gameA: { name: "게임A", boards: ["build", "boss", "item", "bug"], members: ["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"] },
+      gameB: { name: "게임B", boards: ["tips", "meta", "craft"], members: ["aaa", "bbb", "ccc"] }
     },
-    rooms: {
+    boards: {
       build: { name: "빌드" },
       boss: { name: "보스공략" },
       item: { name: "아이템" },
@@ -107,26 +107,26 @@ const state = {
       craft:{ name: "제작" }
     },
     memos: [
-      makeMemo("build", "eee", "보조무기: 단검이 편함. 이동기 좋아.", "calm1", "2026-01-02T10:00:00Z"),
-      makeMemo("build", "ccc", "장비 파밍 루트:\n마을→동굴→성채", "calm2", "2026-01-04T10:00:00Z"),
-      makeMemo("build", "aaa", "패치 후에 치명타 계수 바뀐 듯.\n체감상 약해짐.", "calm3", "2026-01-04T12:00:00Z"),
-      makeMemo("build", "bbb", "딜 욕심내면 죽음.\n방어 우선.", "calm4", "2026-01-05T10:00:00Z"),
-      makeMemo("build", "aaa", "초반엔 이 빌드가 제일 편함.\n스킬은 3-2-1 순서가 안정적.", "calm1", "2026-01-06T10:00:00Z"),
+      makeMemo("build", "eee", "보조무기: 단검이 편함. 이동기 좋아.", "cream", "2026-01-02T10:00:00Z"),
+      makeMemo("build", "ccc", "장비 파밍 루트:\n마을→동굴→성채", "blue", "2026-01-04T10:00:00Z"),
+      makeMemo("build", "aaa", "패치 후에 치명타 계수 바뀐 듯.\n체감상 약해짐.", "sage", "2026-01-04T12:00:00Z"),
+      makeMemo("build", "bbb", "딜 욕심내면 죽음.\n방어 우선.", "coral", "2026-01-05T10:00:00Z"),
+      makeMemo("build", "aaa", "초반엔 이 빌드가 제일 편함.\n스킬은 3-2-1 순서가 안정적.", "cream", "2026-01-06T10:00:00Z"),
     ]
   }
 };
 
-function updateRoomStatus(data) {
+function updateBoardStatus(data) {
   // data = { memoCount: 51, memberCount: 9, lastModified: "01/06 00:00:00" }
   if (qs("#memoCount")) qs("#memoCount").textContent = data.memoCount;
   if (qs("#memberCount")) qs("#memberCount").textContent = data.memberCount;
   if (qs("#lastModified")) qs("#lastModified").textContent = data.lastModified;
 }
 
-function makeMemo(roomId, author, content, color, createdAt, attachments = []){
+function makeMemo(boardId, author, content, color, createdAt, attachments = []){
   return {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
-    roomId,
+    boardId,
     author,
     content,
     color,
@@ -333,7 +333,7 @@ function openViewModal(id){
 
   // 메모 색 입히기
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
-  dialog.classList.add(m.color || "calm1");
+  dialog.classList.add(m.color || "cream");
 
   // 안전 렌더
   qs("#viewAuthor", dialog).textContent = canEdit ? `${m.author} (나)` : m.author;
@@ -379,11 +379,11 @@ function openEditModal(id){
           </span>
 
           <div class="color-pick" id="editColors" aria-label="색상 선택">
-            <div class="swatch white" data-color="calm1" title="화이트"></div>
-            <div class="swatch blue" data-color="calm2" title="블루"></div>
-            <div class="swatch green" data-color="calm3" title="그린"></div>
-            <div class="swatch coral" data-color="calm4" title="오렌지"></div>
-            <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+            <div class="swatch white" data-color="cream" title="화이트"></div>
+            <div class="swatch blue" data-color="blue" title="블루"></div>
+            <div class="swatch green" data-color="sage" title="그린"></div>
+            <div class="swatch coral" data-color="coral" title="오렌지"></div>
+            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
           </div>
         </div>
 
@@ -405,7 +405,7 @@ function openEditModal(id){
   // 초기값
   ta.value = m.content;
 
-  let picked = m.color || "calm1";
+  let picked = m.color || "cream";
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
   dialog.classList.add(picked);
 
@@ -462,17 +462,17 @@ function updateMemo(id, patch){
 // =========================
 // derived data
 // =========================
-function getMyChannelIds(){
-  return Object.keys(state.data.channels || {});
+function getMySpaceIds(){
+  return Object.keys(state.data.spaces || {});
 }
-function hasAnyChannel(){
-  return getMyChannelIds().length > 0;
+function hasAnySpace(){
+  return getMySpaceIds().length > 0;
 }
-function getCurrentChannel(){
-  return state.data.channels[state.channelId];
+function getCurrentSpace(){
+  return state.data.spaces[state.spaceId];
 }
-function getMemosForRoom(){
-  const all = state.data.memos.filter(m => m.roomId === state.roomId);
+function getMemosForBoard(){
+  const all = state.data.memos.filter(m => m.boardId === state.boardId);
   all.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const q = state.search.trim().toLowerCase();
@@ -487,20 +487,20 @@ function getMemosForRoom(){
 // =========================
 // actions (state changes)
 // =========================
-function setChannel(channelId){
-  state.channelId = channelId;
+function setSpace(spaceId){
+  state.spaceId = spaceId;
 
-  const ch = state.data.channels[channelId];
-  const rooms = ch?.rooms ?? [];
-  state.roomId = rooms[0] ?? "";
+  const ch = state.data.spaces[spaceId];
+  const boards = ch?.boards ?? [];
+  state.boardId = boards[0] ?? "";
 
   state.search = "";
   if(el.searchInput) el.searchInput.value = "";
   syncSearchClear();
 }
 
-function setRoom(roomId){
-  state.roomId = roomId;
+function setBoard(boardId){
+  state.boardId = boardId;
   state.search = "";
   if(el.searchInput) el.searchInput.value = "";
   syncSearchClear();
@@ -515,7 +515,7 @@ function submitQuick(textarea){
   const text = textarea.value.trim();
   if(!text) return;
 
-  state.data.memos.push(makeMemo(state.roomId, state.me, text, state.quickColor, new Date().toISOString()));
+  state.data.memos.push(makeMemo(state.boardId, state.me, text, state.quickColor, new Date().toISOString()));
   textarea.value = "";
   autoGrowTextarea(textarea); // ✅ 비우면 높이도 원복
   renderAll();
@@ -533,49 +533,49 @@ function showOnboarding(show){
   if(el.dock) el.dock.hidden = true;
 
   if(el.board) el.board.innerHTML = "";
-  if(el.roomList) el.roomList.innerHTML = "";
+  if(el.boardList) el.boardList.innerHTML = "";
   if(el.memberCount) el.memberCount.textContent = "0";
 
-  if(el.roomName){
-    el.roomName.textContent = show ? "#채널 없음" : el.roomName.textContent;
+  if(el.boardName){
+    el.boardName.textContent = show ? "#채널 없음" : el.boardName.textContent;
   }
 }
 
 // =========================
 // render
 // =========================
-function syncChannelLabel(){
-  const ch = getCurrentChannel();
-  if(!el.channelLabel) return;
-  el.channelLabel.textContent = ch?.name ?? el.channelSelect?.selectedOptions?.[0]?.textContent ?? state.channelId;
+function syncSpaceLabel(){
+  const ch = getCurrentSpace();
+  if(!el.spaceLabel) return;
+  el.spaceLabel.textContent = ch?.name ?? el.spaceSelect?.selectedOptions?.[0]?.textContent ?? state.spaceId;
 }
 
-function renderRooms(){
-  if(!el.roomList) return;
+function renderBoards(){
+  if(!el.boardList) return;
 
-  el.roomList.innerHTML = "";
-  const ch = getCurrentChannel();
-  const roomIds = ch?.rooms ?? [];
+  el.boardList.innerHTML = "";
+  const ch = getCurrentSpace();
+  const boardIds = ch?.boards ?? [];
 
-  roomIds.forEach(rid => {
+  boardIds.forEach(rid => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "roomBtn" + (rid === state.roomId ? " active" : "");
+    btn.className = "boardBtn" + (rid === state.boardId ? " active" : "");
 
-    const name = state.data.rooms[rid]?.name ?? rid;
-    const count = state.data.memos.filter(m => m.roomId === rid).length;
+    const name = state.data.boards[rid]?.name ?? rid;
+    const count = state.data.memos.filter(m => m.boardId === rid).length;
 
     btn.innerHTML = `
-      <span class="roomHash">#${escapeHTML(name)}</span>
-      <span class="roomCount">${count}</span>
+      <span class="boardHash">#${escapeHTML(name)}</span>
+      <span class="boardCount">${count}</span>
     `;
 
     btn.addEventListener("click", () => {
-      setRoom(rid);
+      setBoard(rid);
       renderAll();
     });
 
-    el.roomList.appendChild(btn);
+    el.boardList.appendChild(btn);
   });
 }
 
@@ -587,8 +587,8 @@ function updateComposerMode(isEmpty){
     el.boardWrap.style.paddingBottom = isEmpty ? "40px" : "140px";
   }
 
-  const rn = state.data.rooms[state.roomId]?.name ?? state.roomId;
-  if(el.roomName) el.roomName.textContent = `#${rn}`;
+  const rn = state.data.boards[state.boardId]?.name ?? state.boardId;
+  if(el.boardName) el.boardName.textContent = `#${rn}`;
 }
 
 function renderBoard(){
@@ -597,9 +597,9 @@ function renderBoard(){
   const q = state.search.trim();
 
   // 방 전체(검색 무시) -> empty 판단용
-  const roomAll = state.data.memos.filter(m => m.roomId === state.roomId);
+  const boardAll = state.data.memos.filter(m => m.boardId === state.boardId);
 
-  const memos = getMemosForRoom();
+  const memos = getMemosForBoard();
   el.board.innerHTML = "";
 
   memos.forEach(m => {
@@ -681,7 +681,7 @@ function renderBoard(){
     el.board.appendChild(empty);
   }
 
-  updateComposerMode(roomAll.length === 0);
+  updateComposerMode(boardAll.length === 0);
 }
 
 function applyBoardCols(){
@@ -709,24 +709,24 @@ function applyBoardCols(){
 const ro = new ResizeObserver(() => applyBoardCols());
 
 function renderAll(){
-  if(!hasAnyChannel()){
+  if(!hasAnySpace()){
     showOnboarding(true);
     return;
   }
   showOnboarding(false);
 
-  // channelId 유효성 보정
-  const myChannels = getMyChannelIds();
-  if(!state.channelId || !state.data.channels[state.channelId]){
-    setChannel(myChannels[0]);
+  // spaceId 유효성 보정
+  const mySpaces = getMySpaceIds();
+  if(!state.spaceId || !state.data.spaces[state.spaceId]){
+    setSpace(mySpaces[0]);
   }
 
-  syncChannelLabel();
-  renderRooms();
+  syncSpaceLabel();
+  renderBoards();
   renderBoard();
   applyBoardCols();
 
-  const ch = getCurrentChannel();
+  const ch = getCurrentSpace();
   if(el.memberCount) el.memberCount.textContent = String((ch?.members ?? []).length);
 }
 
@@ -803,11 +803,11 @@ function openNewMemoModal(initialFiles = []){
           <span> </span>
 
           <div class="color-pick" id="newColors" aria-label="색상 선택">
-            <div class="swatch white selected" data-color="calm1" title="화이트"></div>
-            <div class="swatch blue" data-color="calm2" title="블루"></div>
-            <div class="swatch green" data-color="calm3" title="그린"></div>
-            <div class="swatch coral" data-color="calm4" title="오렌지"></div>
-            <div class="swatch purple" data-color="calm5" title="퍼플"></div>
+            <div class="swatch white selected" data-color="cream" title="화이트"></div>
+            <div class="swatch blue" data-color="blue" title="블루"></div>
+            <div class="swatch green" data-color="sagesage" title="그린"></div>
+            <div class="swatch coral" data-color="coral" title="오렌지"></div>
+            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
           </div>
         </div>
 
@@ -842,7 +842,7 @@ function openNewMemoModal(initialFiles = []){
     }
 
   // ✅ picked는 먼저 선언 (저장 로직보다 위)
-  let picked = "calm1";
+  let picked = "cream";
 
 function rerenderAtt(){
   renderAttachments(attachPreview, draftAttachments, rerenderAtt);
@@ -890,7 +890,7 @@ rerenderAtt();
     }
 
     const color = picked ?? state.quickColor;
-    state.data.memos.push(makeMemo(state.roomId, state.me, text, color, new Date().toISOString(), []));
+    state.data.memos.push(makeMemo(state.boardId, state.me, text, color, new Date().toISOString(), []));
 
     closeOverlay();   // ✅ 여기서 cleanup 자동 실행됨
     renderAll();
@@ -945,17 +945,17 @@ function loadSidebarW(){
 // =========================
 // event handlers
 // =========================
-function closeChannelMenu(){
-  el.channelMenu?.classList.add("hidden");
-  el.channelPill?.classList.remove("open");
-  el.channelBtn?.setAttribute("aria-expanded", "false");
+function closeSpaceMenu(){
+  el.spaceMenu?.classList.add("hidden");
+  el.spacePill?.classList.remove("open");
+  el.spaceBtn?.setAttribute("aria-expanded", "false");
 }
 
-function renderChannelMenu(){
-  if(!el.channelMenu || !el.channelSelect) return;
+function renderSpaceMenu(){
+  if(!el.spaceMenu || !el.spaceSelect) return;
 
-  el.channelMenu.innerHTML = Array.from(el.channelSelect.options).map(opt => {
-    const active = opt.value === state.channelId ? "is-active" : "";
+  el.spaceMenu.innerHTML = Array.from(el.spaceSelect.options).map(opt => {
+    const active = opt.value === state.spaceId ? "is-active" : "";
     return `
       <button class="dropItem ${active}" type="button" role="option" data-value="${opt.value}">
         ${escapeHTML(opt.textContent)}
@@ -964,41 +964,41 @@ function renderChannelMenu(){
   }).join("");
 }
 
-function onChannelMenuOpen(e){
+function onSpaceMenuOpen(e){
   e.stopPropagation();
 
-  if(!el.channelMenu) return;
+  if(!el.spaceMenu) return;
 
-  const willOpen = el.channelMenu.classList.contains("hidden");
+  const willOpen = el.spaceMenu.classList.contains("hidden");
 
   if(!willOpen){
-    closeChannelMenu();
+    closeSpaceMenu();
     return;
   }
 
-  renderChannelMenu();
-  el.channelMenu.classList.remove("hidden");
-  el.channelPill?.classList.add("open");
-  el.channelBtn?.setAttribute("aria-expanded", "true");
+  renderSpaceMenu();
+  el.spaceMenu.classList.remove("hidden");
+  el.spacePill?.classList.add("open");
+  el.spaceBtn?.setAttribute("aria-expanded", "true");
 }
 
-function onChannelMenuClick(e){
+function onSpaceMenuClick(e){
   const btn = e.target.closest(".dropItem");
-  if(!btn || !el.channelSelect) return;
+  if(!btn || !el.spaceSelect) return;
 
   const value = btn.dataset.value;
   if(!value) return;
 
-  el.channelSelect.value = value;
-  onChannelChange();
-  closeChannelMenu();
+  el.spaceSelect.value = value;
+  onSpaceChange();
+  closeSpaceMenu();
 }
 
-function onChannelChange(){
-  const next = el.channelSelect?.value;
+function onSpaceChange(){
+  const next = el.spaceSelect?.value;
   if(!next) return;
 
-  setChannel(next);
+  setSpace(next);
   renderAll();
 }
 
@@ -1015,13 +1015,13 @@ function onDocumentPointerDown(e){
     }
   }
 
-  // channel menu 닫기
-  const isInsideChannel =
-    el.channelPill?.contains(e.target) ||
-    el.channelMenu?.contains(e.target);
+  // space menu 닫기
+  const isInsideSpace =
+    el.spacePill?.contains(e.target) ||
+    el.spaceMenu?.contains(e.target);
 
-  if(!isInsideChannel){
-    closeChannelMenu();
+  if(!isInsideSpace){
+    closeSpaceMenu();
   }
 
   // member panel 바깥 클릭 닫기
@@ -1034,7 +1034,7 @@ function onDocumentPointerDown(e){
 }
 
 function renderMemberPanel(){
-  const ch = getCurrentChannel();
+  const ch = getCurrentSpace();
   const list = ch?.members ?? [];
 
   const html = list.length
@@ -1112,7 +1112,7 @@ function onGlobalKeydown(e){
   if(e.key !== "Escape") return;
 
   closePlusMenu();
-  closeChannelMenu();
+  closeSpaceMenu();
   closeMemberPanel();
 
   if(state.search.trim().length > 0){
@@ -1176,37 +1176,37 @@ function onJoinByCode(){
   const map = { "A": "gameA", "B": "gameB", "gameA": "gameA", "gameB": "gameB" };
   const cid = map[code];
 
-  if(!cid || !state.data.channels[cid]){
+  if(!cid || !state.data.spaces[cid]){
     alert("유효하지 않은 초대코드임.");
     return;
   }
 
-  setChannel(cid);
+  setSpace(cid);
   el.inviteCodeInput.value = "";
   renderAll();
 }
 
-function onCreateChannel(){
-  const name = el.newChannelNameInput?.value.trim();
+function onCreateSpace(){
+  const name = el.newSpaceNameInput?.value.trim();
   if(!name) return;
 
   const id = "ch_" + Math.random().toString(16).slice(2, 8);
 
-  // ⚠️ 데모: room id 충돌 위험 있음. 백엔드 붙일 땐 채널별 room id로 바꿔라.
+  // ⚠️ 데모: board id 충돌 위험 있음. 백엔드 붙일 땐 채널별 board id로 바꿔라.
   const generalId = "general";
 
-  state.data.channels[id] = {
+  state.data.spaces[id] = {
     name,
-    rooms: [generalId],
+    boards: [generalId],
     members: [state.me]
   };
 
-  state.data.rooms[generalId] = { name: "일반" };
+  state.data.boards[generalId] = { name: "일반" };
 
-  setChannel(id);
-  setRoom(generalId);
+  setSpace(id);
+  setBoard(generalId);
 
-  el.newChannelNameInput.value = "";
+  el.newSpaceNameInput.value = "";
   renderAll();
 }
 
@@ -1217,9 +1217,9 @@ function bindEvents(){
   el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
   el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
 
-  el.channelBtn?.addEventListener("click", onChannelMenuOpen);
-  el.channelMenu?.addEventListener("click", onChannelMenuClick);
-  el.channelSelect?.addEventListener("change", onChannelChange);
+  el.spaceBtn?.addEventListener("click", onSpaceMenuOpen);
+  el.spaceMenu?.addEventListener("click", onSpaceMenuClick);
+  el.spaceSelect?.addEventListener("change", onSpaceChange);
 
   el.searchInput?.addEventListener("input", onSearchInput);
   el.searchClear?.addEventListener("click", onSearchClear);
@@ -1250,7 +1250,7 @@ function bindEvents(){
   el.splitter?.addEventListener("pointerdown", onSplitterDown);
 
   el.joinByCodeBtn?.addEventListener("click", onJoinByCode);
-  el.createChannelBtn?.addEventListener("click", onCreateChannel);
+  el.createSpaceBtn?.addEventListener("click", onCreateSpace);
 
   el.meBtn?.addEventListener("click", () => location.href = "./index.html");
 
@@ -1262,26 +1262,26 @@ function bindEvents(){
   el.memberClose?.addEventListener("click", closeMemberPanel);
 
 // --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
-  el.roomDesc = qs("#roomDesc");
-  if (el.roomDesc) {
-    el.roomDesc.addEventListener("click", () => {
-      if (el.roomDesc.getAttribute("contenteditable") === "false") {
-        el.roomDesc.setAttribute("contenteditable", "true");
-        el.roomDesc.focus();
+  el.boardDesc = qs("#boardDesc");
+  if (el.boardDesc) {
+    el.boardDesc.addEventListener("click", () => {
+      if (el.boardDesc.getAttribute("contenteditable") === "false") {
+        el.boardDesc.setAttribute("contenteditable", "true");
+        el.boardDesc.focus();
       }
     });
 
-    el.roomDesc.addEventListener("blur", () => {
-      el.roomDesc.setAttribute("contenteditable", "false");
-      if (el.roomDesc.textContent.trim() === "") {
-        el.roomDesc.innerHTML = ""; // 텅 비우면 연필 다시 등장
+    el.boardDesc.addEventListener("blur", () => {
+      el.boardDesc.setAttribute("contenteditable", "false");
+      if (el.boardDesc.textContent.trim() === "") {
+        el.boardDesc.innerHTML = ""; // 텅 비우면 연필 다시 등장
       }
     });
 
-    el.roomDesc.addEventListener("keydown", (e) => {
+    el.boardDesc.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        el.roomDesc.blur();
+        el.boardDesc.blur();
       }
     });
   }
@@ -1365,9 +1365,9 @@ if(saved === "1"){
   autoGrowTextarea(el.quickInput);
   autoGrowTextarea(el.quickInputDock);
 
-  if(el.channelSelect) el.channelSelect.value = state.channelId;
+  if(el.spaceSelect) el.spaceSelect.value = state.spaceId;
 
-  setChannel(state.channelId);
+  setSpace(state.spaceId);
 
   renderAll();
 }
