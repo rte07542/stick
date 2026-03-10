@@ -1367,7 +1367,88 @@ if(saved === "1"){
 
   if(el.spaceSelect) el.spaceSelect.value = state.spaceId;
 
-  setSpace(state.spaceId);
+  setSpace(state.spaceId);\
+
+//백엔드 연결
+async function loadSpaces() {
+    try {
+        const response = await fetch("/spaces");
+
+        if (!response.ok) {
+            throw new Error("Space 목록 불러오기 실패");
+        }
+
+        const spaces = await response.json();
+
+        const spaceLabel = document.getElementById("spaceLabel");
+        const spaceMenu = document.getElementById("spaceMenu");
+        const spaceSelect = document.getElementById("spaceSelect");
+
+        spaceMenu.innerHTML = "";
+        spaceSelect.innerHTML = "";
+
+        if (spaces.length === 0) {
+            spaceLabel.textContent = "스페이스 없음";
+            return;
+        }
+
+        // 첫 번째 space를 기본 선택값으로 사용
+        let selectedSpaceId = spaces[0].id;
+        let selectedSpaceName = spaces[0].name;
+
+        spaceLabel.textContent = selectedSpaceName;
+
+        spaces.forEach((space, index) => {
+            // 드롭다운 버튼 생성
+            const button = document.createElement("button");
+            button.className = "dropItem" + (index === 0 ? " is-active" : "");
+            button.type = "button";
+            button.setAttribute("role", "option");
+            button.dataset.value = space.id;
+            button.textContent = space.name;
+
+            button.addEventListener("click", () => {
+                selectedSpaceId = space.id;
+                selectedSpaceName = space.name;
+
+                // 라벨 변경
+                spaceLabel.textContent = selectedSpaceName;
+
+                // active 클래스 갱신
+                document.querySelectorAll("#spaceMenu .dropItem").forEach(item => {
+                    item.classList.remove("is-active");
+                });
+                button.classList.add("is-active");
+
+                // hidden select 동기화
+                spaceSelect.value = String(space.id);
+
+                console.log("선택한 space:", selectedSpaceId, selectedSpaceName);
+
+                // 다음 단계에서 여기서 board 불러오면 됨
+                // loadBoards(selectedSpaceId);
+            });
+
+            spaceMenu.appendChild(button);
+
+            // hidden select option 생성
+            const option = document.createElement("option");
+            option.value = space.id;
+            option.textContent = space.name;
+            if (index === 0) {
+                option.selected = true;
+            }
+
+            spaceSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Space 로딩 에러:", error);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadSpaces();
+});
 
   renderAll();
 }

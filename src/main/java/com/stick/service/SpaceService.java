@@ -30,6 +30,12 @@ public class SpaceService {
 
         return spaceRepository.save(space);
     }
+    /*  이 함수의 역할
+        Space 객체 생성 - DB에 저장 - 저장된 객체 반환
+        public Space createSpace(String name, Long ownerId, String description) : controller에서 3가지 정보를 받아온다.
+        Space space : space 객체 하나 생성
+        return spaceRepository.save(space); :
+    */
 
     public List<Space> getAllSpaces() {
         return spaceRepository.findAll();
