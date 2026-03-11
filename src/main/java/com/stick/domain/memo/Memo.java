@@ -1,5 +1,6 @@
 package com.stick.domain.memo;
 
+import com.stick.domain.board.Board;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -16,7 +17,9 @@ public class Memo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long boardId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
     private Long authorId;
 
