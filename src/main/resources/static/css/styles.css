@@ -1695,4 +1695,115 @@ mark{
 .sum-divider{
   opacity: 0.4;
 }
+.modalBackdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1000;
+}
 
+.spaceOnboardingModal{
+  width: 100%;
+  max-width: 720px;
+  background: #fcfbf8;
+  border: 1px solid #e7e1d7;
+  border-radius: 28px;
+  padding: 44px 40px 34px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.spaceOnboardingTitle{
+  margin: 0 0 32px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #1f3556;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.spaceOnboardingLabel{
+  display: block;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #244267;
+  text-align: center;
+}
+
+.spaceOnboardingInput{
+  width: 100%;
+  height: 64px;
+  border-radius: 20px;
+  border: 1px solid #d9dfe6;
+  background: #f5f7fa;
+  padding: 0 18px;
+  font-size: 16px;
+  outline: none;
+}
+
+.spaceOnboardingInput:focus,
+.spaceJoinInput:focus{
+  border-color: #9fb3c8;
+  background: #fff;
+}
+
+.spaceOnboardingCreateBtn{
+  width: 100%;
+  height: 58px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 18px;
+  background: #d7c29b;
+  color: #12233d;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.spaceOnboardingJoin{
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.spaceJoinText{
+  font-size: 15px;
+  font-weight: 700;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.spaceJoinInput{
+  width: 240px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #d9dfe6;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.spaceJoinTextBtn{
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1f3556;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.spaceJoinTextBtn:hover{
+  text-decoration: underline;
+}

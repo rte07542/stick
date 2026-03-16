@@ -65,6 +65,11 @@ const el = {
   memberClose: qs("#memberClose"),
   memberTitle: qs("#memberTitle"),
   meBtn: qs("#meBtn"),
+spaceOnboardingModal: qs("#spaceOnboardingModal"),
+inviteCodeInput: qs("#inviteCodeInput"),
+joinByCodeBtn: qs("#joinByCodeBtn"),
+newSpaceNameInput: qs("#newSpaceNameInput"),
+createSpaceBtn: qs("#createSpaceBtn"),
 };
 
 // =========================
@@ -88,31 +93,14 @@ let lastSidebarW = null;
 // =========================
 const state = {
   me: "aaa",
-  spaceId: "gameA",
-  boardId: "build",
+  currentSpaceId: null,
+  currentBoardId: null,
   search: "",
   quickColor: "cream",
   data: {
-    spaces: {
-      gameA: { name: "게임A", boards: ["build", "boss", "item", "bug"], members: ["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"] },
-      gameB: { name: "게임B", boards: ["tips", "meta", "craft"], members: ["aaa", "bbb", "ccc"] }
-    },
-    boards: {
-      build: { name: "빌드" },
-      boss: { name: "보스공략" },
-      item: { name: "아이템" },
-      bug:  { name: "버그" },
-      tips: { name: "팁" },
-      meta: { name: "메타" },
-      craft:{ name: "제작" }
-    },
-    memos: [
-      makeMemo("build", "eee", "보조무기: 단검이 편함. 이동기 좋아.", "cream", "2026-01-02T10:00:00Z"),
-      makeMemo("build", "ccc", "장비 파밍 루트:\n마을→동굴→성채", "blue", "2026-01-04T10:00:00Z"),
-      makeMemo("build", "aaa", "패치 후에 치명타 계수 바뀐 듯.\n체감상 약해짐.", "sage", "2026-01-04T12:00:00Z"),
-      makeMemo("build", "bbb", "딜 욕심내면 죽음.\n방어 우선.", "coral", "2026-01-05T10:00:00Z"),
-      makeMemo("build", "aaa", "초반엔 이 빌드가 제일 편함.\n스킬은 3-2-1 순서가 안정적.", "cream", "2026-01-06T10:00:00Z"),
-    ]
+    spaces: [],
+    boards: [],
+    memos: []
   }
 };
 
@@ -136,13 +124,12 @@ function makeMemo(boardId, author, content, color, createdAt, attachments = []){
   };
 }
 
-function autoGrowTextarea(ta){
-  if(!ta) return;
+function autoGrowTextarea(ta) {
+  if (!ta) return;
 
-  const max = 140; // CSS max-height랑 맞추기
-  ta.style.height = "auto"; // ✅ 이게 복귀의 핵심
+  const max = 140;
+  ta.style.height = "auto";
 
-  // scrollHeight는 내용 없을 때도 padding 포함해서 나옴
   const next = Math.min(ta.scrollHeight, max);
   ta.style.height = next + "px";
 }
@@ -268,6 +255,165 @@ function syncAttachHint(hintEl, draftAttachments){
       ? `이미지는 최대 ${MAX_ATTACH}장까지 가능.`
       : `이미지 붙여넣기(Ctrl+V) 가능. 지금은 임시 프리뷰만 뜸. (${draftAttachments.length}/${MAX_ATTACH})`;
 }
+
+
+// =========================
+// Space가 없을때의 모달
+// =========================
+function openSpaceOnboardingModal() {
+  el.spaceOnboardingModal?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeSpaceOnboardingModal() {
+  el.spaceOnboardingModal?.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+function hasSpaces() {
+  return Array.isArray(state.data.spaces) && state.data.spaces.length > 0;
+}
+
+function syncSpaceOnboardingModal() {
+  if (hasSpaces()) {
+    closeSpaceOnboardingModal();
+  } else {
+    openSpaceOnboardingModal();
+  }
+}
+
+async function loadInitialData() {
+  try {
+    const spaces = await fetchMySpaces(); // 네 API 연결
+    state.data.spaces = Array.isArray(spaces) ? spaces : [];
+    syncSpaceOnboardingModal();
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    state.data.spaces = [];
+    syncSpaceOnboardingModal();
+  }
+}
+
+async function handleCreateSpace() {
+  const name = el.newSpaceNameInput?.value.trim();
+
+  if (!name) {
+    alert("스페이스 이름을 입력해.");
+    el.newSpaceNameInput?.focus();
+    return;
+  }
+
+  try {
+    const ownerId = 1; // 임시값. 나중엔 로그인 유저 id로 교체
+    const createdSpace = await createSpace(name, ownerId);
+
+    if (!Array.isArray(state.data.spaces)) {
+      state.data.spaces = [];
+    }
+
+    state.data.spaces.push(createdSpace);
+
+    el.newSpaceNameInput.value = "";
+
+    closeSpaceOnboardingModal();
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    alert("스페이스 생성에 실패했어.");
+  }
+}
+
+async function handleJoinByCode() {
+  const inviteCode = el.inviteCodeInput?.value.trim();
+
+  if (!inviteCode) {
+    alert("참가코드를 입력해.");
+    el.inviteCodeInput?.focus();
+    return;
+  }
+
+  try {
+    const joinedSpace = await joinSpaceByCode(inviteCode); // 네 API 연결
+
+    // 이미 목록에 없을 때만 추가
+    const exists = state.data.spaces.some(space => space.id === joinedSpace.id);
+    if (!exists) {
+      state.data.spaces.push(joinedSpace);
+    }
+
+    el.inviteCodeInput.value = "";
+
+    closeSpaceOnboardingModal();
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    alert("참가코드 입장에 실패했어.");
+  }
+}
+
+function bindSpaceOnboardingEvents() {
+  el.createSpaceBtn?.addEventListener("click", handleCreateSpace);
+  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
+
+  el.newSpaceNameInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleCreateSpace();
+  });
+
+  el.inviteCodeInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleJoinByCode();
+  });
+}
+
+async function fetchMySpaces() {
+  const res = await fetch("http://localhost:8080/spaces", {
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("스페이스 목록 조회 실패");
+  }
+
+  return await res.json();
+}
+
+async function createSpace(name, ownerId, description = "") {
+  const params = new URLSearchParams({
+    name,
+    ownerId: String(ownerId),
+    description
+  });
+
+  const res = await fetch(`http://localhost:8080/spaces?${params.toString()}`, {
+    method: "POST",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("스페이스 생성 실패");
+  }
+
+  return await res.json();
+}
+
+async function joinSpaceByCode(inviteCode) {
+  const res = await fetch("/spaces/join", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({ inviteCode })
+  });
+
+  if (!res.ok) {
+    throw new Error("참가코드 입장 실패");
+  }
+
+  return await res.json();
+}
+
+bindSpaceOnboardingEvents();
+loadInitialData();
 
 // =========================
 // Memo View / Edit Modal
@@ -1367,7 +1513,7 @@ if(saved === "1"){
 
   if(el.spaceSelect) el.spaceSelect.value = state.spaceId;
 
-  setSpace(state.spaceId);\
+  setSpace(state.spaceId);
 
 //백엔드 연결
 async function loadSpaces() {

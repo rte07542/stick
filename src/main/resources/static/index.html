@@ -22,17 +22,17 @@
             </div>
             <div class="sideInfo">
                 <div class="sideControls">
-                        <label class="pill pillDrop" id="spacePill">
-                            <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
-                                    type="button">
-                                <span id="spaceLabel">불러오는 중...</span>
-                            </button>
+                    <label class="pill pillDrop" id="spacePill">
+                        <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
+                                type="button">
+                            <span id="spaceLabel">불러오는 중...</span>
+                        </button>
 
-                            <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
-                            <select hidden id="spaceSelect">불러오는 중...</select>
-                        </label>
+                        <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
+                        <select hidden id="spaceSelect">불러오는 중...</select>
+                    </label>
 
-                        <span aria-hidden="true" class="segDiv"></span>
+                    <span aria-hidden="true" class="segDiv"></span>
                 </div>
             </div>
             <nav class="boardList" id="boardList"></nav>
@@ -115,38 +115,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- ✅ onboarding state (스페이스 0개일 때만 중앙에) -->
-                <div class="emptyState" hidden id="onboardingState">
-                    <div class="emptyStack">
-                        <div class="emptyText">아직 소속된 스페이스이 없어</div>
-
-                        <div class="composer">
-                            <div class="composerBar" style="justify-content: flex-start;">
-                                <div class="composerLeft"
-                                     style="flex-direction: column; align-items: stretch; gap: 10px;">
-                                    <input class="quickInput" id="inviteCodeInput" placeholder="초대코드 입력"
-                                           style="height: 44px;"/>
-                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
-                                        <button class="btn primary" id="joinByCodeBtn" type="button">참가</button>
-                                    </div>
-
-                                    <div style="height:1px; background: rgba(0,0,0,.08); margin: 6px 0;"></div>
-
-                                    <input class="quickInput" id="newSpaceNameInput" placeholder="새 스페이스 이름"
-                                           style="height: 44px;"/>
-                                    <div style="display:flex; gap:10px; justify-content:flex-end;">
-                                        <button class="btn" id="createSpaceBtn" type="button">스페이스 만들기</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="hint" style="text-align:center;">
-                            초대코드로 들어가거나, 네가 스페이스을 만들면 됨.
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- ✅ 메모가 1개 이상일 때만 쓸 하단 composer -->
@@ -181,6 +149,39 @@
             </aside>
 
         </main>
+    </div>
+</div>
+
+<div class="modalBackdrop hidden" id="spaceOnboardingModal">
+    <div class="spaceOnboardingModal">
+        <h2 class="spaceOnboardingTitle">새 스페이스 만들기</h2>
+
+        <label class="spaceOnboardingLabel" for="newSpaceNameInput">스페이스 이름</label>
+        <input
+                id="newSpaceNameInput"
+                class="spaceOnboardingInput"
+                type="text"
+                placeholder="예: 게임 공략 정리방"
+        />
+
+        <button id="createSpaceBtn" class="spaceOnboardingCreateBtn" type="button">
+            스페이스 만들기
+        </button>
+
+        <div class="spaceOnboardingJoin">
+            <span class="spaceJoinText">참가코드 있으면</span>
+
+            <input
+                    id="inviteCodeInput"
+                    class="spaceJoinInput"
+                    type="text"
+                    placeholder="참가코드 입력"
+            />
+
+            <button id="joinByCodeBtn" class="spaceJoinTextBtn" type="button">
+                입장하기
+            </button>
+        </div>
     </div>
 </div>
 
