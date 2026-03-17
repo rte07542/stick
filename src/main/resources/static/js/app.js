@@ -56,8 +56,6 @@ const el = {
   onboardingState: qs("#onboardingState"),
   inviteCodeInput: qs("#inviteCodeInput"),
   joinByCodeBtn: qs("#joinByCodeBtn"),
-  newSpaceNameInput: qs("#newSpaceNameInput"),
-  createSpaceBtn: qs("#createSpaceBtn"),
 
   membersToggleBtn: qs("#membersToggleBtn"),
   memberPanel: qs("#memberPanel"),
@@ -66,10 +64,15 @@ const el = {
   memberTitle: qs("#memberTitle"),
   meBtn: qs("#meBtn"),
 spaceOnboardingModal: qs("#spaceOnboardingModal"),
-inviteCodeInput: qs("#inviteCodeInput"),
-joinByCodeBtn: qs("#joinByCodeBtn"),
-newSpaceNameInput: qs("#newSpaceNameInput"),
-createSpaceBtn: qs("#createSpaceBtn"),
+
+showCreateSpaceBtn: qs("#showCreateSpaceBtn"),
+createSpaceModal: qs("#createSpaceModal"),
+closeCreateSpaceModalBtn: qs("#closeCreateSpaceModalBtn"),
+backToJoinModalBtn: qs("#backToJoinModalBtn"),
+createSpaceNameInput: qs("#createSpaceNameInput"),
+submitCreateSpaceBtn: qs("#submitCreateSpaceBtn"),
+
+spaceContextMenu: qs("#spaceContextMenu"),
 };
 
 // =========================
@@ -92,9 +95,9 @@ let lastSidebarW = null;
 // state (demo)
 // =========================
 const state = {
-  me: "aaa",
-  currentSpaceId: null,
-  currentBoardId: null,
+  me: "test",
+  spaceId: null,
+  boardId: null,
   search: "",
   quickColor: "cream",
   data: {
@@ -128,10 +131,19 @@ function autoGrowTextarea(ta) {
   if (!ta) return;
 
   const max = 140;
-  ta.style.height = "auto";
+  const singleLine = 28;
+
+  ta.style.height = singleLine + "px";
+
+  if (ta.scrollHeight <= singleLine + 8) {
+    ta.style.height = singleLine + "px";
+    ta.style.overflowY = "hidden";
+    return;
+  }
 
   const next = Math.min(ta.scrollHeight, max);
   ta.style.height = next + "px";
+  ta.style.overflowY = next > max ? "auto" : "hidden";
 }
 
 // =========================
@@ -283,43 +295,29 @@ function syncSpaceOnboardingModal() {
 
 async function loadInitialData() {
   try {
-    const spaces = await fetchMySpaces(); // 네 API 연결
-    state.data.spaces = Array.isArray(spaces) ? spaces : [];
+    await fetchAndApplySpaces();
+
+    if (state.data.spaces.length > 0) {
+      const stillValid = state.data.spaces.some(
+        space => String(space.id) === String(state.spaceId)
+      );
+
+      if (!stillValid) {
+        setSpace(state.data.spaces[0].id);
+      }
+    } else {
+      state.spaceId = null;
+      state.boardId = null;
+    }
+
     syncSpaceOnboardingModal();
     renderAll();
   } catch (err) {
     console.error(err);
     state.data.spaces = [];
+    state.spaceId = null;
+    state.boardId = null;
     syncSpaceOnboardingModal();
-  }
-}
-
-async function handleCreateSpace() {
-  const name = el.newSpaceNameInput?.value.trim();
-
-  if (!name) {
-    alert("스페이스 이름을 입력해.");
-    el.newSpaceNameInput?.focus();
-    return;
-  }
-
-  try {
-    const ownerId = 1; // 임시값. 나중엔 로그인 유저 id로 교체
-    const createdSpace = await createSpace(name, ownerId);
-
-    if (!Array.isArray(state.data.spaces)) {
-      state.data.spaces = [];
-    }
-
-    state.data.spaces.push(createdSpace);
-
-    el.newSpaceNameInput.value = "";
-
-    closeSpaceOnboardingModal();
-    renderAll();
-  } catch (err) {
-    console.error(err);
-    alert("스페이스 생성에 실패했어.");
   }
 }
 
@@ -333,15 +331,12 @@ async function handleJoinByCode() {
   }
 
   try {
-    const joinedSpace = await joinSpaceByCode(inviteCode); // 네 API 연결
-
-    // 이미 목록에 없을 때만 추가
-    const exists = state.data.spaces.some(space => space.id === joinedSpace.id);
-    if (!exists) {
-      state.data.spaces.push(joinedSpace);
-    }
+    const joinedSpace = await joinSpaceByCode(inviteCode);
 
     el.inviteCodeInput.value = "";
+
+    await fetchAndApplySpaces();
+    setSpace(joinedSpace.id);
 
     closeSpaceOnboardingModal();
     renderAll();
@@ -349,19 +344,6 @@ async function handleJoinByCode() {
     console.error(err);
     alert("참가코드 입장에 실패했어.");
   }
-}
-
-function bindSpaceOnboardingEvents() {
-  el.createSpaceBtn?.addEventListener("click", handleCreateSpace);
-  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
-
-  el.newSpaceNameInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleCreateSpace();
-  });
-
-  el.inviteCodeInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") handleJoinByCode();
-  });
 }
 
 async function fetchMySpaces() {
@@ -411,8 +393,6 @@ async function joinSpaceByCode(inviteCode) {
 
   return await res.json();
 }
-
-bindSpaceOnboardingEvents();
 loadInitialData();
 
 // =========================
@@ -608,15 +588,18 @@ function updateMemo(id, patch){
 // =========================
 // derived data
 // =========================
-function getMySpaceIds(){
-  return Object.keys(state.data.spaces || {});
-}
-function hasAnySpace(){
-  return getMySpaceIds().length > 0;
-}
-function getCurrentSpace(){
-  return state.data.spaces[state.spaceId];
-}
+function getMySpaceIds() {
+   return state.data.spaces.map(space => String(space.id));
+ }
+
+ function hasAnySpace() {
+   return state.data.spaces.length > 0;
+ }
+
+ function getCurrentSpace() {
+   return state.data.spaces.find(space => String(space.id) === String(state.spaceId)) ?? null;
+ }
+
 function getMemosForBoard(){
   const all = state.data.memos.filter(m => m.boardId === state.boardId);
   all.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -633,15 +616,21 @@ function getMemosForBoard(){
 // =========================
 // actions (state changes)
 // =========================
-function setSpace(spaceId){
-  state.spaceId = spaceId;
+function setSpace(spaceId) {
+  state.spaceId = String(spaceId);
 
-  const ch = state.data.spaces[spaceId];
-  const boards = ch?.boards ?? [];
-  state.boardId = boards[0] ?? "";
+  const currentSpace = getCurrentSpace();
+  const boards = currentSpace?.boards ?? [];
+
+  if (Array.isArray(boards) && boards.length > 0) {
+    const firstBoard = boards[0];
+    state.boardId = typeof firstBoard === "object" ? String(firstBoard.id) : String(firstBoard);
+  } else {
+    state.boardId = null;
+  }
 
   state.search = "";
-  if(el.searchInput) el.searchInput.value = "";
+  if (el.searchInput) el.searchInput.value = "";
   syncSearchClear();
 }
 
@@ -690,10 +679,20 @@ function showOnboarding(show){
 // =========================
 // render
 // =========================
-function syncSpaceLabel(){
-  const ch = getCurrentSpace();
-  if(!el.spaceLabel) return;
-  el.spaceLabel.textContent = ch?.name ?? el.spaceSelect?.selectedOptions?.[0]?.textContent ?? state.spaceId;
+function syncSpaceLabel() {
+  if (!el.spaceLabel) return;
+
+  if (!hasAnySpace()) {
+    el.spaceLabel.textContent = "null";
+    return;
+  }
+
+  const currentSpace = getCurrentSpace();
+
+  el.spaceLabel.textContent =
+    currentSpace?.name ??
+    el.spaceSelect?.selectedOptions?.[0]?.textContent ??
+    "스페이스 선택";
 }
 
 function renderBoards(){
@@ -854,16 +853,18 @@ function applyBoardCols(){
 
 const ro = new ResizeObserver(() => applyBoardCols());
 
-function renderAll(){
-  if(!hasAnySpace()){
+function renderAll() {
+  if (!hasAnySpace()) {
     showOnboarding(true);
     return;
   }
+
   showOnboarding(false);
 
-  // spaceId 유효성 보정
   const mySpaces = getMySpaceIds();
-  if(!state.spaceId || !state.data.spaces[state.spaceId]){
+  const currentSpace = getCurrentSpace();
+
+  if (!state.spaceId || !currentSpace) {
     setSpace(mySpaces[0]);
   }
 
@@ -872,8 +873,10 @@ function renderAll(){
   renderBoard();
   applyBoardCols();
 
-  const ch = getCurrentSpace();
-  if(el.memberCount) el.memberCount.textContent = String((ch?.members ?? []).length);
+  const space = getCurrentSpace();
+  if (el.memberCount) {
+    el.memberCount.textContent = String((space?.members ?? []).length);
+  }
 }
 
 // =========================
@@ -1100,7 +1103,7 @@ function closeSpaceMenu(){
 function renderSpaceMenu(){
   if(!el.spaceMenu || !el.spaceSelect) return;
 
-  el.spaceMenu.innerHTML = Array.from(el.spaceSelect.options).map(opt => {
+  const items = Array.from(el.spaceSelect.options).map(opt => {
     const active = opt.value === state.spaceId ? "is-active" : "";
     return `
       <button class="dropItem ${active}" type="button" role="option" data-value="${opt.value}">
@@ -1108,16 +1111,34 @@ function renderSpaceMenu(){
       </button>
     `;
   }).join("");
+
+  el.spaceMenu.innerHTML = `
+    <div class="dropMenuList">
+      ${items}
+    </div>
+
+    <div class="dropMenuFooter">
+      <button class="dropAddBtn" type="button" data-act="open-space-entry">
+        + 스페이스 추가
+      </button>
+    </div>
+  `;
 }
 
-function onSpaceMenuOpen(e){
+function onSpaceMenuOpen(e) {
   e.stopPropagation();
 
-  if(!el.spaceMenu) return;
+  if (!hasAnySpace()) {
+    closeSpaceMenu();
+    openSpaceOnboardingModal();
+    return;
+  }
+
+  if (!el.spaceMenu) return;
 
   const willOpen = el.spaceMenu.classList.contains("hidden");
 
-  if(!willOpen){
+  if (!willOpen) {
     closeSpaceMenu();
     return;
   }
@@ -1129,6 +1150,13 @@ function onSpaceMenuOpen(e){
 }
 
 function onSpaceMenuClick(e){
+  const addBtn = e.target.closest('[data-act="open-space-entry"]');
+  if (addBtn) {
+    closeSpaceMenu();
+    openSpaceOnboardingModal();
+    return;
+  }
+
   const btn = e.target.closest(".dropItem");
   if(!btn || !el.spaceSelect) return;
 
@@ -1145,18 +1173,20 @@ function onSpaceChange(){
   if(!next) return;
 
   setSpace(next);
+  syncSpaceLabel();
+  renderSpaceMenu();
   renderAll();
 }
 
 function onDocumentPointerDown(e){
   // plus menu 닫기
-  if(plusMenuEl){
+  if (plusMenuEl) {
     const isInsidePlusMenu = plusMenuEl.contains(e.target);
     const isPlusBtn =
       e.target.closest("#composerPlus") ||
       e.target.closest("#composerPlusDock");
 
-    if(!isInsidePlusMenu && !isPlusBtn){
+    if (!isInsidePlusMenu && !isPlusBtn) {
       closePlusMenu();
     }
   }
@@ -1166,7 +1196,7 @@ function onDocumentPointerDown(e){
     el.spacePill?.contains(e.target) ||
     el.spaceMenu?.contains(e.target);
 
-  if(!isInsideSpace){
+  if (!isInsideSpace) {
     closeSpaceMenu();
   }
 
@@ -1174,8 +1204,18 @@ function onDocumentPointerDown(e){
   const isMemberToggle = e.target.closest("#membersToggleBtn");
   const isInsideMemberPanel = el.memberPanel?.contains(e.target);
 
-  if(!isMemberToggle && !isInsideMemberPanel){
+  if (!isMemberToggle && !isInsideMemberPanel) {
     closeMemberPanel();
+  }
+
+  // space context menu 바깥 클릭 닫기
+  const isInsideSpaceContextMenu = el.spaceContextMenu?.contains(e.target);
+  const isSpaceContextTrigger =
+    e.target.closest(".dropItem") ||
+    e.target.closest("#spaceBtn");
+
+  if (!isInsideSpaceContextMenu && !isSpaceContextTrigger) {
+    closeSpaceContextMenu();
   }
 }
 
@@ -1272,6 +1312,8 @@ function onGlobalKeydown(e){
   if(el.overlay && !el.overlay.classList.contains("hidden")){
     closeOverlay();
   }
+
+  closeSpaceContextMenu();
 }
 
 function onToggleSidebar(){
@@ -1332,28 +1374,62 @@ function onJoinByCode(){
   renderAll();
 }
 
-function onCreateSpace(){
-  const name = el.newSpaceNameInput?.value.trim();
-  if(!name) return;
+// =========================
+// 스페이스 만들기
+// =========================
 
-  const id = "ch_" + Math.random().toString(16).slice(2, 8);
+function openCreateSpaceModal() {
+  el.createSpaceModal?.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
 
-  // ⚠️ 데모: board id 충돌 위험 있음. 백엔드 붙일 땐 채널별 board id로 바꿔라.
-  const generalId = "general";
+function closeCreateSpaceModal() {
+  el.createSpaceModal?.classList.add("hidden");
+  document.body.style.overflow = "";
+}
 
-  state.data.spaces[id] = {
-    name,
-    boards: [generalId],
-    members: [state.me]
-  };
+function switchToCreateSpaceModal() {
+  closeSpaceOnboardingModal();
+  openCreateSpaceModal();
+  setTimeout(() => {
+    el.createSpaceNameInput?.focus();
+  }, 0);
+}
 
-  state.data.boards[generalId] = { name: "일반" };
+function switchToJoinModal() {
+  closeCreateSpaceModal();
+  openSpaceOnboardingModal();
+  setTimeout(() => {
+    el.inviteCodeInput?.focus();
+  }, 0);
+}
 
-  setSpace(id);
-  setBoard(generalId);
+async function handleCreateSpace() {
+  const name = el.createSpaceNameInput?.value.trim();
 
-  el.newSpaceNameInput.value = "";
-  renderAll();
+  if (!name) {
+    alert("스페이스 이름을 입력해.");
+    el.createSpaceNameInput?.focus();
+    return;
+  }
+
+  try {
+    const newSpace = await createSpace(name, 1, "");
+
+    el.createSpaceNameInput.value = "";
+
+    await fetchAndApplySpaces();
+    setSpace(newSpace.id);
+
+    closeCreateSpaceModal();
+    closeSpaceOnboardingModal();
+
+    syncSpaceOnboardingModal();
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    alert("스페이스 생성에 실패했어.");
+  }
 }
 
 // =========================
@@ -1395,17 +1471,78 @@ function bindEvents(){
   el.toggleSidebarBtn?.addEventListener("click", onToggleSidebar);
   el.splitter?.addEventListener("pointerdown", onSplitterDown);
 
-  el.joinByCodeBtn?.addEventListener("click", onJoinByCode);
-  el.createSpaceBtn?.addEventListener("click", onCreateSpace);
-
-  el.meBtn?.addEventListener("click", () => location.href = "./index.html");
+  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
 
   el.membersToggleBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
     toggleMemberPanel();
   });
 
+      el.spaceOnboardingModal?.addEventListener("click", (e) => {
+        if (e.target === el.spaceOnboardingModal) {
+          closeSpaceOnboardingModal();
+        }
+      });
+
+      el.createSpaceModal?.addEventListener("click", (e) => {
+        if (e.target === el.createSpaceModal) {
+          closeCreateSpaceModal();
+        }
+      });
+
   el.memberClose?.addEventListener("click", closeMemberPanel);
+
+    el.showCreateSpaceBtn?.addEventListener("click", switchToCreateSpaceModal);
+    el.closeCreateSpaceModalBtn?.addEventListener("click", closeCreateSpaceModal);
+    el.backToJoinModalBtn?.addEventListener("click", switchToJoinModal);
+    el.submitCreateSpaceBtn?.addEventListener("click", handleCreateSpace);
+
+    el.createSpaceNameInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleCreateSpace();
+      }
+    });
+
+el.spaceMenu?.addEventListener("contextmenu", (e) => {
+  const item = e.target.closest(".dropItem");
+  if (!item) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const spaceId = item.dataset.value;
+  if (!spaceId) return;
+
+  closeSpaceMenu();
+  openSpaceContextMenu(e.clientX, e.clientY, spaceId);
+});
+
+el.spaceBtn?.addEventListener("contextmenu", (e) => {
+  if (!state.spaceId) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  closeSpaceMenu();
+  openSpaceContextMenu(e.clientX, e.clientY, state.spaceId);
+});
+
+    el.spaceContextMenu?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".spaceContextItem");
+      if (!btn || !contextSpaceId) return;
+
+      const act = btn.dataset.act;
+
+      if (act === "settings") {
+        openSpaceSettings(contextSpaceId);
+        return;
+      }
+
+      if (act === "leave") {
+        leaveSpace(contextSpaceId);
+      }
+    });
 
 // --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
   el.boardDesc = qs("#boardDesc");
@@ -1433,7 +1570,6 @@ function bindEvents(){
   }
 }
 
-let plusMenuEl = null;
 
 function closePlusMenu(){
   plusMenuEl?.remove();
@@ -1484,6 +1620,368 @@ function onComposerFiles(fileInput){
   openNewMemoModal(files);
 }
 
+let plusMenuEl = null;
+let contextSpaceId = null;
+
+function openSpaceContextMenu(x, y, spaceId) {
+  if (!el.spaceContextMenu) return;
+
+  console.log("context open", { x, y, spaceId, menu: el.spaceContextMenu });
+
+  contextSpaceId = String(spaceId);
+  el.spaceContextMenu.classList.remove("hidden");
+
+  const menu = el.spaceContextMenu;
+  const pad = 8;
+
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+
+    let left = x;
+    let top = y;
+
+    if (left + rect.width > window.innerWidth - pad) {
+      left = window.innerWidth - rect.width - pad;
+    }
+
+    if (top + rect.height > window.innerHeight - pad) {
+      top = window.innerHeight - rect.height - pad;
+    }
+
+    menu.style.left = `${Math.max(pad, left)}px`;
+    menu.style.top = `${Math.max(pad, top)}px`;
+
+    console.log("context positioned", menu.style.left, menu.style.top, rect);
+  });
+}
+
+function closeSpaceContextMenu() {
+  contextSpaceId = null;
+  el.spaceContextMenu?.classList.add("hidden");
+}
+
+function getSpaceById(spaceId) {
+  return state.data.spaces.find(space => String(space.id) === String(spaceId)) ?? null;
+}
+
+function openSpaceSettings(spaceId) {
+  const space = getSpaceById(spaceId);
+  if (!space) return;
+
+  closeSpaceContextMenu();
+
+  overlayMode = "modal";
+  openOverlay();
+  el.sidePanel?.classList.add("hidden");
+
+  if (!el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" id="spaceSettingsDialog" style="width: min(420px, 92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle">스페이스 설정</div>
+        <button class="dialogClose" type="button" id="spaceSettingsCloseBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="dialogBody">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label for="spaceSettingsName" style="font-size:12px; font-weight:900; color:var(--muted);">
+              스페이스 이름
+            </label>
+            <input
+              id="spaceSettingsName"
+              type="text"
+              value="${escapeHTML(space.name ?? "")}"
+              style="height:44px; border:1px solid var(--line); border-radius:12px; padding:0 12px; font-size:14px; font-weight:700; outline:none; background:#fff;"
+            />
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <label for="spaceSettingsDesc" style="font-size:12px; font-weight:900; color:var(--muted);">
+              설명
+            </label>
+            <textarea
+              id="spaceSettingsDesc"
+              rows="4"
+              style="border:1px solid var(--line); border-radius:12px; padding:12px; font-size:14px; font-weight:700; outline:none; background:#fff; resize:vertical;"
+              placeholder="스페이스 설명을 입력해"
+            >${escapeHTML(space.description ?? "")}</textarea>
+          </div>
+        </div>
+
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid rgba(17,24,39,.08);">
+          <div style="font-size:12px; font-weight:900; color:#b42318; margin-bottom:8px;">
+            위험 구역
+          </div>
+          <button
+            class="btn danger"
+            type="button"
+            id="spaceDeleteBtn"
+            style="width:100%; justify-content:center; border:1px solid rgba(180,35,24,.18); color:#b42318; background:#fff5f5;"
+          >
+            스페이스 삭제
+          </button>
+        </div>
+
+        <div class="dialogActions" style="margin-top:16px;">
+          <button class="btn" type="button" id="spaceSettingsCancelBtn">취소</button>
+          <button class="btn primary" type="button" id="spaceSettingsSaveBtn">저장</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const dialog = qs("#spaceSettingsDialog");
+  const closeBtn = qs("#spaceSettingsCloseBtn", dialog);
+  const cancelBtn = qs("#spaceSettingsCancelBtn", dialog);
+  const saveBtn = qs("#spaceSettingsSaveBtn", dialog);
+  const deleteBtn = qs("#spaceDeleteBtn", dialog);
+  const nameInput = qs("#spaceSettingsName", dialog);
+  const descInput = qs("#spaceSettingsDesc", dialog);
+
+  closeBtn?.addEventListener("click", closeOverlay);
+  cancelBtn?.addEventListener("click", closeOverlay);
+
+  saveBtn?.addEventListener("click", () => {
+    const nextName = nameInput?.value.trim();
+    const nextDesc = descInput?.value.trim() ?? "";
+
+    if (!nextName) {
+      alert("스페이스 이름을 입력해.");
+      nameInput?.focus();
+      return;
+    }
+
+    const target = state.data.spaces.find(s => String(s.id) === String(spaceId));
+    if (target) {
+      target.name = nextName;
+      target.description = nextDesc;
+    }
+
+    if (String(state.spaceId) === String(spaceId)) {
+      syncSpaceLabel();
+    }
+
+    renderSpaceMenu();
+    renderAll();
+    closeOverlay();
+  });
+
+  deleteBtn?.addEventListener("click", () => {
+    openDeleteSpaceConfirm(spaceId);
+  });
+
+  nameInput?.focus();
+  nameInput?.setSelectionRange(nameInput.value.length, nameInput.value.length);
+}
+
+function openDeleteSpaceConfirm(spaceId) {
+  const space = getSpaceById(spaceId);
+  if (!space || !el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" id="deleteSpaceDialog" style="width:min(360px, 92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle" style="color:#b42318;">스페이스 삭제</div>
+        <button class="dialogClose" type="button" id="deleteSpaceCloseBtn" aria-label="닫기">✕</button>
+      </div>
+
+      <div class="dialogBody">
+        <div style="font-size:14px; font-weight:800; color:#111827; line-height:1.5;">
+          <b>"${escapeHTML(space.name)}"</b> 스페이스를 삭제할까?
+        </div>
+        <div style="margin-top:10px; font-size:12px; font-weight:800; color:var(--muted); line-height:1.5;">
+          이 작업은 되돌리기 어렵다.
+        </div>
+
+        <div class="dialogActions" style="margin-top:18px;">
+          <button class="btn" type="button" id="deleteSpaceCancelBtn">취소</button>
+          <button
+            class="btn danger"
+            type="button"
+            id="deleteSpaceConfirmBtn"
+            style="border:1px solid rgba(180,35,24,.18); color:#b42318; background:#fff5f5;"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  qs("#deleteSpaceCloseBtn")?.addEventListener("click", () => openSpaceSettings(spaceId));
+  qs("#deleteSpaceCancelBtn")?.addEventListener("click", () => openSpaceSettings(spaceId));
+  qs("#deleteSpaceConfirmBtn")?.addEventListener("click", () => {
+    deleteSpace(spaceId);
+  });
+}
+
+function deleteSpace(spaceId) {
+  const idx = state.data.spaces.findIndex(space => String(space.id) === String(spaceId));
+  if (idx < 0) return;
+
+  state.data.spaces.splice(idx, 1);
+
+  if (el.spaceSelect) {
+    const option = Array.from(el.spaceSelect.options).find(
+      opt => String(opt.value) === String(spaceId)
+    );
+    option?.remove();
+  }
+
+  if (String(state.spaceId) === String(spaceId)) {
+    if (state.data.spaces.length > 0) {
+      setSpace(state.data.spaces[0].id);
+      if (el.spaceSelect) {
+        el.spaceSelect.value = String(state.spaceId);
+      }
+    } else {
+      state.spaceId = null;
+      state.boardId = null;
+
+      if (el.spaceSelect) {
+        el.spaceSelect.value = "";
+      }
+    }
+  }
+
+  syncSpaceLabel();
+  syncSpaceOnboardingModal();
+  renderSpaceMenu();
+  renderAll();
+  closeOverlay();
+}
+
+async function requestDeleteSpace(spaceId) {
+  const res = await fetch(`http://localhost:8080/spaces/${spaceId}`, {
+    method: "DELETE",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("스페이스 삭제 실패");
+  }
+}
+
+async function deleteSpace(spaceId) {
+  try {
+    await requestDeleteSpace(spaceId);
+
+    const idx = state.data.spaces.findIndex(space => String(space.id) === String(spaceId));
+    if (idx < 0) return;
+
+    state.data.spaces.splice(idx, 1);
+
+    if (String(state.spaceId) === String(spaceId)) {
+      if (state.data.spaces.length > 0) {
+        setSpace(state.data.spaces[0].id);
+      } else {
+        state.spaceId = null;
+        state.boardId = null;
+      }
+    }
+
+    if (el.spaceSelect) {
+      const option = Array.from(el.spaceSelect.options).find(
+        opt => String(opt.value) === String(spaceId)
+      );
+      option?.remove();
+    }
+
+    syncSpaceOnboardingModal();
+    renderSpaceMenu();
+    renderAll();
+    closeOverlay();
+  } catch (err) {
+    console.error(err);
+    alert("스페이스 삭제에 실패했어.");
+  }
+}
+
+async function updateSpace(spaceId, name, description) {
+  const res = await fetch(`http://localhost:8080/spaces/${spaceId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({ name, description })
+  });
+
+  if (!res.ok) {
+    throw new Error("스페이스 수정 실패");
+  }
+
+  return await res.json();
+}
+
+function leaveSpace(spaceId) {
+  const space = getSpaceById(spaceId);
+  if (!space) return;
+
+  closeSpaceContextMenu();
+
+  const ok = confirm(`"${space.name}" 스페이스에서 나갈까?`);
+  if (!ok) return;
+
+  alert(`여기에 "${space.name}" 나가기 API 연결하면 된다.`);
+}
+
+async function fetchAndApplySpaces() {
+  try {
+    const response = await fetch("http://localhost:8080/spaces", {
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      throw new Error("Space 목록 불러오기 실패");
+    }
+
+    const spaces = await response.json();
+
+    state.data.spaces = Array.isArray(spaces) ? spaces : [];
+
+    if (!el.spaceSelect) return;
+
+    el.spaceSelect.innerHTML = "";
+
+    if (state.data.spaces.length === 0) {
+      state.spaceId = "";
+      if (el.spaceLabel) el.spaceLabel.textContent = "null";
+      renderSpaceMenu();
+      return;
+    }
+
+    state.data.spaces.forEach((space) => {
+      const option = document.createElement("option");
+      option.value = String(space.id);
+      option.textContent = space.name;
+      el.spaceSelect.appendChild(option);
+    });
+
+    const hasCurrent = state.data.spaces.some(
+      (space) => String(space.id) === String(state.spaceId)
+    );
+
+    state.spaceId = hasCurrent
+      ? String(state.spaceId)
+      : String(state.data.spaces[0].id);
+
+    el.spaceSelect.value = state.spaceId;
+
+    const currentSpace = getSpaceById(state.spaceId);
+    if (el.spaceLabel) {
+      el.spaceLabel.textContent = currentSpace?.name ?? "null";
+    }
+
+    renderSpaceMenu();
+    renderAll();
+  } catch (error) {
+    console.error("Space 로딩 에러:", error);
+  }
+}
+
 // =========================
 // init
 // =========================
@@ -1496,14 +1994,13 @@ function init(){
 
   loadSidebarW();
 
-const saved = localStorage.getItem("sidebarCollapsed");
+  const saved = localStorage.getItem("sidebarCollapsed");
 
-// 저장이 1이면 접힘, 아니면 펼침(기본)
-if(saved === "1"){
-  el.layout?.classList.add("sidebar-collapsed");
-} else {
-  el.layout?.classList.remove("sidebar-collapsed");
-}
+  if(saved === "1"){
+    el.layout?.classList.add("sidebar-collapsed");
+  } else {
+    el.layout?.classList.remove("sidebar-collapsed");
+  }
 
   syncColorUI();
   syncSearchClear();
@@ -1511,90 +2008,14 @@ if(saved === "1"){
   autoGrowTextarea(el.quickInput);
   autoGrowTextarea(el.quickInputDock);
 
-  if(el.spaceSelect) el.spaceSelect.value = state.spaceId;
-
-  setSpace(state.spaceId);
-
-//백엔드 연결
-async function loadSpaces() {
-    try {
-        const response = await fetch("/spaces");
-
-        if (!response.ok) {
-            throw new Error("Space 목록 불러오기 실패");
-        }
-
-        const spaces = await response.json();
-
-        const spaceLabel = document.getElementById("spaceLabel");
-        const spaceMenu = document.getElementById("spaceMenu");
-        const spaceSelect = document.getElementById("spaceSelect");
-
-        spaceMenu.innerHTML = "";
-        spaceSelect.innerHTML = "";
-
-        if (spaces.length === 0) {
-            spaceLabel.textContent = "스페이스 없음";
-            return;
-        }
-
-        // 첫 번째 space를 기본 선택값으로 사용
-        let selectedSpaceId = spaces[0].id;
-        let selectedSpaceName = spaces[0].name;
-
-        spaceLabel.textContent = selectedSpaceName;
-
-        spaces.forEach((space, index) => {
-            // 드롭다운 버튼 생성
-            const button = document.createElement("button");
-            button.className = "dropItem" + (index === 0 ? " is-active" : "");
-            button.type = "button";
-            button.setAttribute("role", "option");
-            button.dataset.value = space.id;
-            button.textContent = space.name;
-
-            button.addEventListener("click", () => {
-                selectedSpaceId = space.id;
-                selectedSpaceName = space.name;
-
-                // 라벨 변경
-                spaceLabel.textContent = selectedSpaceName;
-
-                // active 클래스 갱신
-                document.querySelectorAll("#spaceMenu .dropItem").forEach(item => {
-                    item.classList.remove("is-active");
-                });
-                button.classList.add("is-active");
-
-                // hidden select 동기화
-                spaceSelect.value = String(space.id);
-
-                console.log("선택한 space:", selectedSpaceId, selectedSpaceName);
-
-                // 다음 단계에서 여기서 board 불러오면 됨
-                // loadBoards(selectedSpaceId);
-            });
-
-            spaceMenu.appendChild(button);
-
-            // hidden select option 생성
-            const option = document.createElement("option");
-            option.value = space.id;
-            option.textContent = space.name;
-            if (index === 0) {
-                option.selected = true;
-            }
-
-            spaceSelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error("Space 로딩 에러:", error);
+  if (hasAnySpace()) {
+    if (!state.spaceId && state.data.spaces[0]?.id != null) {
+      setSpace(state.data.spaces[0].id);
     }
-}
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadSpaces();
-});
+    syncSpaceLabel();
+    renderSpaceMenu();
+  }
 
   renderAll();
 }

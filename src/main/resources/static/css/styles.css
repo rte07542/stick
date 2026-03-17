@@ -443,6 +443,7 @@ mark{
   backdrop-filter: blur(6px);
   justify-content: flex-start;
   box-shadow: none;
+  min-height: 50px;
 }
 
 .composerRow .composerBar{
@@ -468,12 +469,14 @@ mark{
   background: transparent;
   resize: none;
   width: 100%;
-  height: auto;
+  height: 28px;
   line-height: 20px;
   min-height: 28px;
   max-height: 140px;
-  overflow-y: auto;
-  padding: 3px 0;
+  overflow-y: hidden;
+  padding: 4px 0;
+  display: block;
+  font: inherit;
 }
 
 .dialog.noteDialog.cream{
@@ -1202,6 +1205,46 @@ mark{
   pointer-events: none;
 }
 
+.dropMenu{
+  padding: 6px;
+}
+
+.dropMenuList{
+  display: flex;
+  flex-direction: column;
+}
+
+.dropMenuFooter{
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(17,24,39,.08);
+}
+
+.dropAddBtn{
+  width: 100%;
+  min-height: var(--drop-item-h);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  transition: background .12s ease, transform .08s ease;
+}
+
+.dropAddBtn:hover{
+  background: rgba(17,24,39,.06);
+}
+
+.dropAddBtn:active{
+  transform: scale(0.99);
+}
+
 .sideInfo{
   padding-top: 15px;
   margin-bottom: 10px;
@@ -1698,7 +1741,7 @@ mark{
 .modalBackdrop{
   position: fixed;
   inset: 0;
-  background: rgba(17, 24, 39, 0.28);
+  background: rgba(17, 24, 39, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1706,104 +1749,275 @@ mark{
   z-index: 1000;
 }
 
-.spaceOnboardingModal{
-  width: 100%;
-  max-width: 720px;
-  background: #fcfbf8;
-  border: 1px solid #e7e1d7;
-  border-radius: 28px;
-  padding: 44px 40px 34px;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-}
+/* =========================
+   Space Onboarding Modal
+   ========================= */
 
-.spaceOnboardingTitle{
-  margin: 0 0 32px;
-  font-size: 34px;
-  font-weight: 900;
-  color: #1f3556;
-  line-height: 1.2;
-  text-align: center;
-}
-
-.spaceOnboardingLabel{
-  display: block;
-  margin-bottom: 12px;
-  font-size: 16px;
-  font-weight: 800;
-  color: #244267;
-  text-align: center;
-}
-
-.spaceOnboardingInput{
-  width: 100%;
-  height: 64px;
-  border-radius: 20px;
-  border: 1px solid #d9dfe6;
-  background: #f5f7fa;
-  padding: 0 18px;
-  font-size: 16px;
-  outline: none;
-}
-
-.spaceOnboardingInput:focus,
-.spaceJoinInput:focus{
-  border-color: #9fb3c8;
-  background: #fff;
-}
-
-.spaceOnboardingCreateBtn{
-  width: 100%;
-  height: 58px;
-  margin-top: 22px;
-  border: 0;
-  border-radius: 18px;
-  background: #d7c29b;
-  color: #12233d;
-  font-size: 18px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.spaceOnboardingJoin{
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+.modalBackdrop{
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  flex-wrap: nowrap;
+  padding: 24px;
+  background: rgba(17, 24, 39, 0.06);
+  z-index: 1000;
 }
 
-.spaceJoinText{
-  font-size: 15px;
-  font-weight: 700;
-  color: #6b7280;
-  white-space: nowrap;
+.modalBackdrop.hidden{
+  display: none !important;
+}
+
+.spaceOnboardingModal{
+  width: 100%;
+  max-width: 420px;
+  min-height: 300px;
+  background: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  padding: 42px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.spaceOnboardingModal.compact{
+  gap: 0;
+}
+
+.spaceOnboardingBrand{
+  margin: 0 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+}
+
+.spaceOnboardingBrand .stickLogo{
+  display: block;
+  width: auto;
+  height: 28px;
+  object-fit: contain;
 }
 
 .spaceJoinInput{
-  width: 240px;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid #d9dfe6;
-  background: #fff;
-  padding: 0 12px;
-  font-size: 14px;
+  width: 100%;
+  height: 46px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  outline: none;
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.spaceJoinInput::placeholder{
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.spaceJoinInput:focus{
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+  background: #ffffff;
+}
+
+.spaceJoinInput.main{
+  margin-bottom: 14px;
+}
+
+.spaceJoinBtn{
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    transform 0.1s ease,
+    box-shadow 0.16s ease;
+}
+
+.spaceJoinBtn:hover{
+  background: #e5e7eb;
+}
+
+.spaceJoinBtn:active{
+  transform: translateY(1px);
+}
+
+.spaceSubAction{
+  margin-top: 22px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 0.16s ease, opacity 0.16s ease;
+}
+
+.spaceSubAction:hover{
+  color: #111827;
+}
+
+.spaceSubAction:active{
+  opacity: 0.7;
+}
+
+.spaceSubAction:focus-visible,
+.spaceJoinBtn:focus-visible,
+.spaceJoinInput:focus-visible{
   outline: none;
 }
 
-.spaceJoinTextBtn{
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: #1f3556;
-  cursor: pointer;
-  white-space: nowrap;
+/* =========================
+   Mobile
+   ========================= */
+@media (max-width: 480px){
+  .modalBackdrop{
+    padding: 16px;
+  }
+
+
+  .spaceOnboardingModal{
+    max-width: 100%;
+    min-height: 280px;
+    padding: 34px 20px 24px;
+    border-radius: 20px;
+  }
+
+  .spaceOnboardingBrand{
+    margin-bottom: 24px;
+  }
+
+  .spaceOnboardingBrand .stickLogo{
+    height: 24px;
+  }
+
+  .spaceJoinInput,
+  .spaceJoinBtn{
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .spaceSubAction{
+    margin-top: 18px;
+    font-size: 12px;
+  }
 }
 
-.spaceJoinTextBtn:hover{
-  text-decoration: underline;
+.spaceOnboardingBrand.text{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  margin: 0 0 28px;
+  font-size: 20px;
+  font-weight: 900;
+  color: #111827;
+  text-align: center;
 }
+
+#createSpaceModal .spaceOnboardingModal{
+  position: relative;
+}
+
+.spaceModalClose{
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.12s ease,
+    box-shadow 0.16s ease;
+}
+
+.spaceModalClose:hover{
+  background: #f3f4f6;
+  color: #111827;
+  border-color: rgba(17, 24, 39, 0.14);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.08);
+}
+
+.spaceModalClose:active{
+  transform: scale(0.96);
+}
+
+.spaceModalClose:focus-visible{
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(17, 24, 39, 0.08),
+    0 4px 12px rgba(17, 24, 39, 0.08);
+}
+
+.spaceContextMenu{
+  position: fixed;
+  z-index: 3000;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid rgba(17,24,39,.12);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(17,24,39,.18);
+}
+
+.spaceContextMenu.hidden{
+  display: none;
+}
+
+.spaceContextItem{
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  cursor: pointer;
+}
+
+.spaceContextItem:hover{
+  background: rgba(17,24,39,.06);
+}
+
+.spaceContextItem.danger{
+  color: #b42318;
+}
+
+.spaceContextItem.danger:hover{
+  background: rgba(180,35,24,.08);
+}
+

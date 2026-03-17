@@ -25,7 +25,7 @@
                     <label class="pill pillDrop" id="spacePill">
                         <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
                                 type="button">
-                            <span id="spaceLabel">불러오는 중...</span>
+                            <span id="spaceLabel"></span>
                         </button>
 
                         <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
@@ -41,7 +41,7 @@
                     <img alt="profile" class="avatar" id="meAvatar" src="img/user-icon.svg">
 
                     <div class="userMeta">
-                        <div class="userName" id="meName">aaa</div>
+                        <div class="userName" id="meName"></div>
                     </div>
                 </button>
             </div>
@@ -55,7 +55,7 @@
             <div class="boardTop">
                 <div class="boardHero">
                     <div class="boardTitleLine">
-                        <div class="boardName" id="boardName">#빌드</div>
+                        <div class="boardName" id="boardName">null</div>
                         <div class="boardDesc" id="boardDesc" contenteditable="false"></div>
                     </div>
 
@@ -153,37 +153,48 @@
 </div>
 
 <div class="modalBackdrop hidden" id="spaceOnboardingModal">
-    <div class="spaceOnboardingModal">
-        <h2 class="spaceOnboardingTitle">새 스페이스 만들기</h2>
+    <div class="spaceOnboardingModal compact">
+        <h2 class="spaceOnboardingBrand">기존 스페이스에 입장하기</h2>
 
-        <label class="spaceOnboardingLabel" for="newSpaceNameInput">스페이스 이름</label>
         <input
-                id="newSpaceNameInput"
-                class="spaceOnboardingInput"
+                id="inviteCodeInput"
+                class="spaceJoinInput main"
                 type="text"
-                placeholder="예: 게임 공략 정리방"
+                placeholder="초대코드"
         />
 
-        <button id="createSpaceBtn" class="spaceOnboardingCreateBtn" type="button">
-            스페이스 만들기
+        <button id="joinByCodeBtn" class="spaceJoinBtn" type="button">
+            입장하기
         </button>
 
-        <div class="spaceOnboardingJoin">
-            <span class="spaceJoinText">참가코드 있으면</span>
-
-            <input
-                    id="inviteCodeInput"
-                    class="spaceJoinInput"
-                    type="text"
-                    placeholder="참가코드 입력"
-            />
-
-            <button id="joinByCodeBtn" class="spaceJoinTextBtn" type="button">
-                입장하기
-            </button>
-        </div>
+        <button id="showCreateSpaceBtn" class="spaceSubAction" type="button">
+            새 스페이스 만들기
+        </button>
     </div>
 </div>
+
+<div class="modalBackdrop hidden" id="createSpaceModal">
+    <div class="spaceOnboardingModal compact">
+
+        <h2 class="spaceOnboardingBrand text">새 스페이스 만들기</h2>
+
+        <input
+                id="createSpaceNameInput"
+                class="spaceJoinInput main"
+                type="text"
+                placeholder="스페이스 이름"
+        />
+
+        <button id="submitCreateSpaceBtn" class="spaceJoinBtn" type="button">
+            생성하기
+        </button>
+
+        <button id="backToJoinModalBtn" class="spaceSubAction" type="button">
+            초대코드로 입장하기
+        </button>
+    </div>
+</div>
+
 
 <div aria-hidden="true" class="overlay hidden noDim" id="overlay">
     <div class="dialog sidePanel" id="sidePanel">
@@ -194,6 +205,11 @@
         <div class="dialogBody" id="panelBody"></div>
     </div>
     <div id="modalRoot"></div>
+</div>
+
+<div class="spaceContextMenu hidden" id="spaceContextMenu">
+    <button type="button" class="spaceContextItem" data-act="settings">스페이스 설정</button>
+    <button type="button" class="spaceContextItem danger" data-act="leave">나가기</button>
 </div>
 
 
