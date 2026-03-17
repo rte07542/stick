@@ -57,7 +57,7 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 Board가 없음. id="+id));
         boardRepository.delete(board);
-    }
+    }//board 지우기
 
     private Space findSpaceById(Long spaceId) {
         return spaceRepository.findById(spaceId)

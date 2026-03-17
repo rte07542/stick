@@ -17,6 +17,7 @@ public class MemoService {
     private final MemoRepository memoRepository;
 
     public Memo createMemo(String content, Long boardId, Long authorId, String color){
+
         Board board = findBoardById(boardId);
 
         Memo memo = Memo.builder()
@@ -32,11 +33,28 @@ public class MemoService {
     }
 
     public List<Memo> getMemosByBoardId(Long boardId){
-        return memoRepository.findAllByBoardId(boardId);
+        return memoRepository.findByBoardId(boardId);
     }
-    public Memo getMemoById(Long memoId){}
-    public Memo getMemoById(Long memoId){}
-    public Memo updateMemo(Long memoId, String content){}
+    public Memo getMemoById(Long id){
+        return memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("해당 Memo가 없음. Id="+id));
+    }
+
+    public Memo updateMemo(Long id, String content, String color){
+        Memo memo = memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("해당 Memo가 없음. id="+id));
+        memo.setContent(content);
+        memo.setColor(color);
+        memo.setUpdatedAt(LocalDateTime.now());
+
+        return memoRepository.save(memo);
+    }
+
+    public void deleteMemo(Long id){
+        Memo memo = memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("해당 memo가 없음 id="+id));
+        memoRepository.delete(memo);
+    }
 
 
     private Board findBoardById(Long boardId){
