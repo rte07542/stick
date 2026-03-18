@@ -2,6 +2,8 @@ package com.stick.service;
 
 import com.stick.domain.board.Board;
 import com.stick.domain.space.Space;
+import com.stick.dto.BoardResponse;
+import com.stick.repository.MemoRepository;
 import com.stick.repository.SpaceRepository;
 import com.stick.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ public class BoardService {
 
     private final SpaceRepository spaceRepository;
     private final BoardRepository boardRepository;
+    private final MemoRepository memoRepository;
 
 
     public Board createBoard(String name, Long spaceId, String description){
@@ -33,8 +36,14 @@ public class BoardService {
         return boardRepository.save(board);
     }
 
-    public List<Board> getBoardsBySpaceId(Long spaceId){
-        return boardRepository.findBySpaceId(spaceId);
+    public List<BoardResponse> getBoardsBySpaceId(Long spaceId){
+        List<Board> boards = boardRepository.findBySpaceId(spaceId);
+        return boards.stream()
+                .map(board -> BoardResponse.from(
+                        board,
+                        (int) memoRepository.countByBoardId(board.getId())?????
+                ))
+                .toList();
     } // 전달받은 spaceId에 속한 Board목록을 DB에서 찾아서 반환하는 함수
 
     public Board getBoardById(Long id){

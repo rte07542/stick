@@ -1,6 +1,7 @@
 package com.stick.controller;
 
 import com.stick.domain.memo.Memo;
+import com.stick.dto.MemoResponse;
 import com.stick.service.MemoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -9,33 +10,38 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/Memos")
+@RequestMapping("/memos")
 public class MemoController {
     private final MemoService memoService;
 
     @PostMapping
-    public Memo createMemo(@RequestParam String content,
+    public MemoResponse createMemo(@RequestParam String content,
                            @RequestParam Long boardId,
                            @RequestParam Long authorId,
                            @RequestParam String color) {
-        return memoService.createMemo(content, boardId, authorId, color);
+        Memo memo = memoService.createMemo(content, boardId, authorId, color);
+        return MemoResponse.from(memo);
     }
 
-    @GetMapping
-    public List<Memo> getMemosByBoardId(@PathVariable Long boardId) {
-        return memoService.getMemosByBoardId(boardId);
+    @GetMapping("/board/{boardId}")
+    public List<MemoResponse> getMemosByBoardId(@PathVariable Long boardId) {
+        return memoService.getMemosByBoardId(boardId)
+                .stream()
+                .map(MemoResponse::from)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Memo getMemoById(@PathVariable Long id){
-        return memoService.getMemoById(id);
+    public MemoResponse getMemoById(@PathVariable Long id){
+        return MemoResponse.from(memoService.getMemoById(id));
     }
 
     @PutMapping("/{memoId}")
-    public Memo updateMemo(@PathVariable Long memoId,
+    public MemoResponse updateMemo(@PathVariable Long memoId,
                            @RequestParam String content,
                            @RequestParam String color) {
-        return memoService.updateMemo(memoId, content, color);
+        Memo memo = memoService.updateMemo(memoId,content,color);
+        return MemoResponse.from(memo);
     }
 
     @DeleteMapping("/{id}")

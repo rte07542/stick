@@ -35,7 +35,12 @@
                     <span aria-hidden="true" class="segDiv"></span>
                 </div>
             </div>
-            <nav class="boardList" id="boardList"></nav>
+            <div id="boardList" class="boardList"></div>
+            <div class="sideSectionHead">
+                <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">
+                    보드 추가
+                </button>
+            </div>
             <div class="sideFooter">
                 <button aria-label="내 계정" class="userCard" id="meBtn" type="button">
                     <img alt="profile" class="avatar" id="meAvatar" src="img/user-icon.svg">
@@ -210,6 +215,12 @@
 <div class="spaceContextMenu hidden" id="spaceContextMenu">
     <button type="button" class="spaceContextItem" data-act="settings">스페이스 설정</button>
     <button type="button" class="spaceContextItem danger" data-act="leave">나가기</button>
+</div>
+
+<div id="boardContextMenu" class="boardContextMenu hidden">
+    <button type="button" class="boardContextItem danger" data-act="delete">
+        보드 삭제
+    </button>
 </div>
 
 

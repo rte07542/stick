@@ -73,7 +73,210 @@ createSpaceNameInput: qs("#createSpaceNameInput"),
 submitCreateSpaceBtn: qs("#submitCreateSpaceBtn"),
 
 spaceContextMenu: qs("#spaceContextMenu"),
+
+addBoardBtn: qs("#addBoardBtn"),
+boardContextMenu: qs("#boardContextMenu"),
+
 };
+
+// =========================
+// bind events
+// =========================
+function bindEvents(){
+  el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
+  el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
+
+  el.spaceBtn?.addEventListener("click", onSpaceMenuOpen);
+  el.spaceMenu?.addEventListener("click", onSpaceMenuClick);
+  el.spaceSelect?.addEventListener("change", onSpaceChange);
+
+  el.searchInput?.addEventListener("input", onSearchInput);
+  el.searchClear?.addEventListener("click", onSearchClear);
+
+  el.quickInput?.addEventListener("keydown", onQuickKeydown);
+  el.quickInputDock?.addEventListener("keydown", onQuickKeydownDock);
+
+  el.composerPlus?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openPlusMenu(el.composerPlus, el.composerFile);
+  });
+
+  el.composerPlusDock?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    openPlusMenu(el.composerPlusDock, el.composerFileDock);
+  });
+
+  el.composerFile?.addEventListener("change", () => onComposerFiles(el.composerFile));
+  el.composerFileDock?.addEventListener("change", () => onComposerFiles(el.composerFileDock));
+
+  el.panelClose?.addEventListener("click", closeSidePanel);
+
+  el.overlay?.addEventListener("pointerdown", onOverlayPointerDown);
+  window.addEventListener("keydown", onGlobalKeydown);
+  document.addEventListener("pointerdown", onDocumentPointerDown);
+
+  el.toggleSidebarBtn?.addEventListener("click", onToggleSidebar);
+  el.splitter?.addEventListener("pointerdown", onSplitterDown);
+
+  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
+
+  el.membersToggleBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMemberPanel();
+  });
+
+      el.spaceOnboardingModal?.addEventListener("click", (e) => {
+        if (e.target === el.spaceOnboardingModal) {
+          closeSpaceOnboardingModal();
+        }
+      });
+
+      el.createSpaceModal?.addEventListener("click", (e) => {
+        if (e.target === el.createSpaceModal) {
+          closeCreateSpaceModal();
+        }
+      });
+
+  el.memberClose?.addEventListener("click", closeMemberPanel);
+
+    el.showCreateSpaceBtn?.addEventListener("click", switchToCreateSpaceModal);
+    el.closeCreateSpaceModalBtn?.addEventListener("click", closeCreateSpaceModal);
+    el.backToJoinModalBtn?.addEventListener("click", switchToJoinModal);
+    el.submitCreateSpaceBtn?.addEventListener("click", handleCreateSpace);
+
+    el.createSpaceNameInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleCreateSpace();
+      }
+    });
+
+el.spaceMenu?.addEventListener("contextmenu", (e) => {
+  const item = e.target.closest(".dropItem");
+  if (!item) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const spaceId = item.dataset.value;
+  if (!spaceId) return;
+
+  closeSpaceMenu();
+  openSpaceContextMenu(e.clientX, e.clientY, spaceId);
+});
+
+el.spaceBtn?.addEventListener("contextmenu", (e) => {
+  if (!state.spaceId) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  closeSpaceMenu();
+  openSpaceContextMenu(e.clientX, e.clientY, state.spaceId);
+});
+
+    el.spaceContextMenu?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".spaceContextItem");
+      if (!btn || !contextSpaceId) return;
+
+      const act = btn.dataset.act;
+
+      if (act === "settings") {
+        openSpaceSettings(contextSpaceId);
+        return;
+      }
+
+      if (act === "leave") {
+        leaveSpace(contextSpaceId);
+      }
+    });
+
+// --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
+  el.boardDesc = qs("#boardDesc");
+  if (el.boardDesc) {
+    el.boardDesc.addEventListener("click", () => {
+      if (el.boardDesc.getAttribute("contenteditable") === "false") {
+        el.boardDesc.setAttribute("contenteditable", "true");
+        el.boardDesc.focus();
+      }
+    });
+
+    el.boardDesc.addEventListener("blur", () => {
+      el.boardDesc.setAttribute("contenteditable", "false");
+      if (el.boardDesc.textContent.trim() === "") {
+        el.boardDesc.innerHTML = ""; // 텅 비우면 연필 다시 등장
+      }
+    });
+
+    el.boardDesc.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        el.boardDesc.blur();
+      }
+    });
+  }
+
+  el.addBoardBtn?.addEventListener("click", handleAddBoard);
+
+  el.boardList?.addEventListener("contextmenu", (e) => {
+    const btn = e.target.closest(".boardBtn");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const boardId = btn.dataset.boardId;
+    if (!boardId) return;
+
+    openBoardContextMenu(e.clientX, e.clientY, boardId);
+  });
+
+  el.boardContextMenu?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".boardContextItem");
+    if (!btn || !contextBoardId) return;
+
+    const act = btn.dataset.act;
+
+    if (act === "delete") {
+      openDeleteBoardConfirm(contextBoardId);
+    }
+  });
+
+}
+
+
+// =========================
+// renderAll
+// =========================
+function renderAll() {
+  syncBoardAddButton();
+
+  if (!hasAnySpace()) {
+    showOnboarding(true);
+    return;
+  }
+
+  showOnboarding(false);
+
+  const currentSpace = getCurrentSpace();
+
+  if (!state.spaceId || !currentSpace) {
+    if (el.boardList) el.boardList.innerHTML = "";
+    if (el.board) el.board.innerHTML = "";
+    if (el.boardName) el.boardName.textContent = "보드 없음";
+    return;
+  }
+
+  syncSpaceLabel();
+  renderBoards();
+  renderBoard();
+  applyBoardCols();
+
+  const space = getCurrentSpace();
+  if (el.memberCount) {
+    el.memberCount.textContent = String((space?.members ?? []).length);
+  }
+}
 
 // =========================
 // constants
@@ -95,7 +298,7 @@ let lastSidebarW = null;
 // state (demo)
 // =========================
 const state = {
-  me: "test",
+  me: "1",
   spaceId: null,
   boardId: null,
   search: "",
@@ -112,19 +315,6 @@ function updateBoardStatus(data) {
   if (qs("#memoCount")) qs("#memoCount").textContent = data.memoCount;
   if (qs("#memberCount")) qs("#memberCount").textContent = data.memberCount;
   if (qs("#lastModified")) qs("#lastModified").textContent = data.lastModified;
-}
-
-function makeMemo(boardId, author, content, color, createdAt, attachments = []){
-  return {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
-    boardId,
-    author,
-    content,
-    color,
-    createdAt,
-    updatedAt: null,
-    attachments
-  };
 }
 
 function autoGrowTextarea(ta) {
@@ -302,22 +492,25 @@ async function loadInitialData() {
         space => String(space.id) === String(state.spaceId)
       );
 
-      if (!stillValid) {
-        setSpace(state.data.spaces[0].id);
-      }
+      const targetSpaceId = stillValid
+        ? state.spaceId
+        : state.data.spaces[0].id;
+
+      await setSpace(targetSpaceId);
     } else {
       state.spaceId = null;
       state.boardId = null;
+      renderAll();
     }
 
     syncSpaceOnboardingModal();
-    renderAll();
   } catch (err) {
     console.error(err);
     state.data.spaces = [];
     state.spaceId = null;
     state.boardId = null;
     syncSpaceOnboardingModal();
+    renderAll();
   }
 }
 
@@ -336,10 +529,9 @@ async function handleJoinByCode() {
     el.inviteCodeInput.value = "";
 
     await fetchAndApplySpaces();
-    setSpace(joinedSpace.id);
+    await setSpace(joinedSpace.id);
 
     closeSpaceOnboardingModal();
-    renderAll();
   } catch (err) {
     console.error(err);
     alert("참가코드 입장에 실패했어.");
@@ -402,7 +594,7 @@ function openViewModal(id){
   const m = state.data.memos.find(x => x.id === id);
   if(!m) return;
 
-  const canEdit = (m.author === state.me);
+  const canEdit = (String(m.authorId) === String(state.me));
   const isEdited = !!m.updatedAt;
 
   overlayMode = "modal";
@@ -462,7 +654,9 @@ function openViewModal(id){
   dialog.classList.add(m.color || "cream");
 
   // 안전 렌더
-  qs("#viewAuthor", dialog).textContent = canEdit ? `${m.author} (나)` : m.author;
+  qs("#viewAuthor", dialog).textContent = canEdit
+    ? `작성자 ID ${m.authorId} (나)`
+    : `작성자 ID ${m.authorId}`;
   qs("#viewTime", dialog).textContent = formatDate(m.createdAt);
   qs("#viewEdited", dialog).textContent = isEdited ? "(수정됨)" : "";
   qs("#viewContent", dialog).textContent = m.content;
@@ -481,7 +675,7 @@ function openViewModal(id){
 function openEditModal(id){
   const m = state.data.memos.find(x => x.id === id);
   if(!m) return;
-  if(m.author !== state.me) return; // 남 글 수정 금지
+  if(String(m.authorId) !== String(state.me)) return; // 남 글 수정 금지
 
   overlayMode = "modal";
   openOverlay();
@@ -575,15 +769,6 @@ function openEditModal(id){
   ta.setSelectionRange(ta.value.length, ta.value.length);
 }
 
-function updateMemo(id, patch){
-  const idx = state.data.memos.findIndex(x => x.id === id);
-  if(idx < 0) return;
-
-  state.data.memos[idx] = {
-    ...state.data.memos[idx],
-    ...patch,
-  };
-}
 
 // =========================
 // derived data
@@ -616,44 +801,80 @@ function getMemosForBoard(){
 // =========================
 // actions (state changes)
 // =========================
-function setSpace(spaceId) {
+async function setSpace(spaceId) {
   state.spaceId = String(spaceId);
 
   const currentSpace = getCurrentSpace();
-  const boards = currentSpace?.boards ?? [];
+  if (!currentSpace) return;
 
-  if (Array.isArray(boards) && boards.length > 0) {
-    const firstBoard = boards[0];
-    state.boardId = typeof firstBoard === "object" ? String(firstBoard.id) : String(firstBoard);
-  } else {
+  try {
+    const boards = await fetchBoardsBySpace(spaceId);
+    currentSpace.boards = Array.isArray(boards) ? boards : [];
+
+    if (currentSpace.boards.length > 0) {
+      state.boardId = String(currentSpace.boards[0].id);
+
+      const memos = await fetchMemosByBoard(state.boardId);
+      applyMemos(memos);
+    } else {
+      state.boardId = null;
+      state.data.memos = [];
+    }
+  } catch (err) {
+    console.error("보드/메모 로딩 실패:", err);
+    currentSpace.boards = [];
     state.boardId = null;
+    state.data.memos = [];
   }
 
   state.search = "";
   if (el.searchInput) el.searchInput.value = "";
   syncSearchClear();
+
+  renderAll();
 }
 
-function setBoard(boardId){
-  state.boardId = boardId;
+async function setBoard(boardId) {
+  state.boardId = String(boardId);
   state.search = "";
-  if(el.searchInput) el.searchInput.value = "";
+
+  if (el.searchInput) el.searchInput.value = "";
   syncSearchClear();
-}
 
-function deleteMemo(id){
-  state.data.memos = state.data.memos.filter(m => m.id !== id);
+  try {
+    const memos = await fetchMemosByBoard(boardId);
+    applyMemos(memos);
+  } catch (err) {
+    console.error("메모 로딩 실패:", err);
+    state.data.memos = [];
+  }
+
   renderAll();
 }
 
-function submitQuick(textarea){
+async function deleteMemo(id) {
+  try {
+    await deleteMemoRequest(id);
+    await reloadCurrentBoardMemos();
+  } catch (err) {
+    console.error(err);
+    alert("메모 삭제에 실패했어.");
+  }
+}
+
+async function submitQuick(textarea) {
   const text = textarea.value.trim();
-  if(!text) return;
+  if (!text || !state.boardId) return;
 
-  state.data.memos.push(makeMemo(state.boardId, state.me, text, state.quickColor, new Date().toISOString()));
-  textarea.value = "";
-  autoGrowTextarea(textarea); // ✅ 비우면 높이도 원복
-  renderAll();
+  try {
+    await createMemoRequest(text, state.boardId, 1, state.quickColor);
+    textarea.value = "";
+    autoGrowTextarea(textarea);
+    await reloadCurrentBoardMemos();
+  } catch (err) {
+    console.error(err);
+    alert("메모 저장에 실패했어.");
+  }
 }
 
 // =========================
@@ -672,7 +893,7 @@ function showOnboarding(show){
   if(el.memberCount) el.memberCount.textContent = "0";
 
   if(el.boardName){
-    el.boardName.textContent = show ? "#채널 없음" : el.boardName.textContent;
+    el.boardName.textContent = show ? "보드 없음" : el.boardName.textContent;
   }
 }
 
@@ -683,7 +904,7 @@ function syncSpaceLabel() {
   if (!el.spaceLabel) return;
 
   if (!hasAnySpace()) {
-    el.spaceLabel.textContent = "null";
+    el.spaceLabel.textContent = "여기눌러 추가";
     return;
   }
 
@@ -695,45 +916,69 @@ function syncSpaceLabel() {
     "스페이스 선택";
 }
 
-function renderBoards(){
-  if(!el.boardList) return;
+function renderBoards() {
+  if (!el.boardList) return;
 
   el.boardList.innerHTML = "";
-  const ch = getCurrentSpace();
-  const boardIds = ch?.boards ?? [];
+  const currentSpace = getCurrentSpace();
+  const boards = currentSpace?.boards ?? [];
 
-  boardIds.forEach(rid => {
+  boards.forEach((boardItem) => {
+    const boardId = typeof boardItem === "object"
+      ? String(boardItem.id)
+      : String(boardItem);
+
+    const boardName = typeof boardItem === "object"
+      ? boardItem.name
+      : String(boardItem);
+
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "boardBtn" + (rid === state.boardId ? " active" : "");
+    btn.className = "boardBtn" + (boardId === String(state.boardId) ? " active" : "");
+    btn.dataset.boardId = boardId;
 
-    const name = state.data.boards[rid]?.name ?? rid;
-    const count = state.data.memos.filter(m => m.boardId === rid).length;
+    const count = typeof boardItem === "object"
+      ? (boardItem.memoCount ?? 0)
+      : 0;
 
     btn.innerHTML = `
-      <span class="boardHash">#${escapeHTML(name)}</span>
+      <span class="boardHash">#${escapeHTML(boardName)}</span>
       <span class="boardCount">${count}</span>
     `;
 
-    btn.addEventListener("click", () => {
-      setBoard(rid);
-      renderAll();
+    btn.addEventListener("click", async () => {
+      await setBoard(boardId);
     });
 
     el.boardList.appendChild(btn);
   });
 }
 
-function updateComposerMode(isEmpty){
-  if(el.emptyState) el.emptyState.hidden = !isEmpty;
-  if(el.dock) el.dock.hidden = isEmpty;
 
-  if(el.boardWrap){
-    el.boardWrap.style.paddingBottom = isEmpty ? "40px" : "140px";
+function updateComposerMode(isEmpty){
+  const canCompose = hasAnySpace() && hasActiveBoard();
+
+  if (el.emptyState) {
+    el.emptyState.hidden = !canCompose || !isEmpty;
   }
 
-  const rn = state.data.boards[state.boardId]?.name ?? state.boardId;
-  if(el.boardName) el.boardName.textContent = `#${rn}`;
+  if (el.dock) {
+    el.dock.hidden = !canCompose || isEmpty;
+  }
+
+  if (el.boardWrap) {
+    el.boardWrap.style.paddingBottom = canCompose && !isEmpty ? "140px" : "40px";
+  }
+
+const currentSpace = getCurrentSpace();
+const currentBoard = (currentSpace?.boards ?? []).find(b =>
+  String(typeof b === "object" ? b.id : b) === String(state.boardId)
+);
+
+const rn = currentBoard
+  ? (typeof currentBoard === "object" ? currentBoard.name : String(currentBoard))
+  : (state.boardId ?? "채널 없음");
+  if (el.boardName) el.boardName.textContent = `#${rn}`;
 }
 
 function renderBoard(){
@@ -749,7 +994,7 @@ function renderBoard(){
 
   memos.forEach(m => {
     const size = getNoteSize(m.content);
-    const canDelete = (m.author === state.me);
+    const canDelete = (String(m.authorId) === String(state.me));
 
     const card = document.createElement("div");
     card.className = `note ${m.color} ${size}` + (canDelete ? " canDelete" : "");
@@ -760,7 +1005,7 @@ function renderBoard(){
 
     const author = document.createElement("span");
     author.className = "noteAuthor";
-    author.textContent = m.author;
+    author.textContent = String(m.authorId ?? m.author ?? "");
     head.appendChild(author);
 
     if(canDelete){
@@ -852,32 +1097,6 @@ function applyBoardCols(){
 }
 
 const ro = new ResizeObserver(() => applyBoardCols());
-
-function renderAll() {
-  if (!hasAnySpace()) {
-    showOnboarding(true);
-    return;
-  }
-
-  showOnboarding(false);
-
-  const mySpaces = getMySpaceIds();
-  const currentSpace = getCurrentSpace();
-
-  if (!state.spaceId || !currentSpace) {
-    setSpace(mySpaces[0]);
-  }
-
-  syncSpaceLabel();
-  renderBoards();
-  renderBoard();
-  applyBoardCols();
-
-  const space = getCurrentSpace();
-  if (el.memberCount) {
-    el.memberCount.textContent = String((space?.members ?? []).length);
-  }
-}
 
 // =========================
 // overlay / sidepanel
@@ -1029,21 +1248,24 @@ rerenderAtt();
     });
   });
 
-  // ✅ 저장은 딱 한 번만
-  createBtn?.addEventListener("click", () => {
-    const text = newText.value.trim();
-    if(!text && draftAttachments.length === 0) return;
+createBtn?.addEventListener("click", async () => {
+  const text = newText.value.trim();
+  if (!text && draftAttachments.length === 0) return;
 
-    if(draftAttachments.length > 0){
-      alert("이미지 업로드는 백엔드 붙인 후에 저장 가능. 지금은 프리뷰만 됨.");
-    }
+  if (draftAttachments.length > 0) {
+    alert("이미지 업로드는 아직 백엔드 연결 안 됨.");
+    return;
+  }
 
-    const color = picked ?? state.quickColor;
-    state.data.memos.push(makeMemo(state.boardId, state.me, text, color, new Date().toISOString(), []));
-
-    closeOverlay();   // ✅ 여기서 cleanup 자동 실행됨
-    renderAll();
-  });
+  try {
+    await createMemoRequest(text, state.boardId, 1, picked ?? state.quickColor);
+    closeOverlay();
+    await reloadCurrentBoardMemos();
+  } catch (err) {
+    console.error(err);
+    alert("메모 저장에 실패했어.");
+  }
+});
 
   newText?.focus();
 }
@@ -1168,14 +1390,13 @@ function onSpaceMenuClick(e){
   closeSpaceMenu();
 }
 
-function onSpaceChange(){
+async function onSpaceChange() {
   const next = el.spaceSelect?.value;
-  if(!next) return;
+  if (!next) return;
 
-  setSpace(next);
+  await setSpace(next);
   syncSpaceLabel();
   renderSpaceMenu();
-  renderAll();
 }
 
 function onDocumentPointerDown(e){
@@ -1216,6 +1437,13 @@ function onDocumentPointerDown(e){
 
   if (!isInsideSpaceContextMenu && !isSpaceContextTrigger) {
     closeSpaceContextMenu();
+  }
+
+  const isInsideBoardContextMenu = el.boardContextMenu?.contains(e.target);
+  const isBoardContextTrigger = e.target.closest(".boardBtn");
+
+  if (!isInsideBoardContextMenu && !isBoardContextTrigger) {
+    closeBoardContextMenu();
   }
 }
 
@@ -1314,6 +1542,7 @@ function onGlobalKeydown(e){
   }
 
   closeSpaceContextMenu();
+  closeBoardContextMenu();
 }
 
 function onToggleSidebar(){
@@ -1357,23 +1586,6 @@ function onSplitterDown(e){
   window.addEventListener("pointerup", onUp);
 }
 
-function onJoinByCode(){
-  const code = el.inviteCodeInput?.value.trim();
-  if(!code) return;
-
-  const map = { "A": "gameA", "B": "gameB", "gameA": "gameA", "gameB": "gameB" };
-  const cid = map[code];
-
-  if(!cid || !state.data.spaces[cid]){
-    alert("유효하지 않은 초대코드임.");
-    return;
-  }
-
-  setSpace(cid);
-  el.inviteCodeInput.value = "";
-  renderAll();
-}
-
 // =========================
 // 스페이스 만들기
 // =========================
@@ -1386,6 +1598,10 @@ function openCreateSpaceModal() {
 function closeCreateSpaceModal() {
   el.createSpaceModal?.classList.add("hidden");
   document.body.style.overflow = "";
+
+  if (!hasSpaces()) {
+    openSpaceOnboardingModal();
+  }
 }
 
 function switchToCreateSpaceModal() {
@@ -1419,156 +1635,23 @@ async function handleCreateSpace() {
     el.createSpaceNameInput.value = "";
 
     await fetchAndApplySpaces();
-    setSpace(newSpace.id);
+    await setSpace(newSpace.id);
 
     closeCreateSpaceModal();
     closeSpaceOnboardingModal();
 
     syncSpaceOnboardingModal();
-    renderAll();
   } catch (err) {
     console.error(err);
     alert("스페이스 생성에 실패했어.");
   }
 }
 
-// =========================
-// bind events
-// =========================
-function bindEvents(){
-  el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
-  el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
-
-  el.spaceBtn?.addEventListener("click", onSpaceMenuOpen);
-  el.spaceMenu?.addEventListener("click", onSpaceMenuClick);
-  el.spaceSelect?.addEventListener("change", onSpaceChange);
-
-  el.searchInput?.addEventListener("input", onSearchInput);
-  el.searchClear?.addEventListener("click", onSearchClear);
-
-  el.quickInput?.addEventListener("keydown", onQuickKeydown);
-  el.quickInputDock?.addEventListener("keydown", onQuickKeydownDock);
-
-  el.composerPlus?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openPlusMenu(el.composerPlus, el.composerFile);
-  });
-
-  el.composerPlusDock?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openPlusMenu(el.composerPlusDock, el.composerFileDock);
-  });
-
-  el.composerFile?.addEventListener("change", () => onComposerFiles(el.composerFile));
-  el.composerFileDock?.addEventListener("change", () => onComposerFiles(el.composerFileDock));
-
-  el.panelClose?.addEventListener("click", closeSidePanel);
-
-  el.overlay?.addEventListener("pointerdown", onOverlayPointerDown);
-  window.addEventListener("keydown", onGlobalKeydown);
-  document.addEventListener("pointerdown", onDocumentPointerDown);
-
-  el.toggleSidebarBtn?.addEventListener("click", onToggleSidebar);
-  el.splitter?.addEventListener("pointerdown", onSplitterDown);
-
-  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
-
-  el.membersToggleBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleMemberPanel();
-  });
-
-      el.spaceOnboardingModal?.addEventListener("click", (e) => {
-        if (e.target === el.spaceOnboardingModal) {
-          closeSpaceOnboardingModal();
-        }
-      });
-
-      el.createSpaceModal?.addEventListener("click", (e) => {
-        if (e.target === el.createSpaceModal) {
-          closeCreateSpaceModal();
-        }
-      });
-
-  el.memberClose?.addEventListener("click", closeMemberPanel);
-
-    el.showCreateSpaceBtn?.addEventListener("click", switchToCreateSpaceModal);
-    el.closeCreateSpaceModalBtn?.addEventListener("click", closeCreateSpaceModal);
-    el.backToJoinModalBtn?.addEventListener("click", switchToJoinModal);
-    el.submitCreateSpaceBtn?.addEventListener("click", handleCreateSpace);
-
-    el.createSpaceNameInput?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleCreateSpace();
-      }
-    });
-
-el.spaceMenu?.addEventListener("contextmenu", (e) => {
-  const item = e.target.closest(".dropItem");
-  if (!item) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  const spaceId = item.dataset.value;
-  if (!spaceId) return;
-
-  closeSpaceMenu();
-  openSpaceContextMenu(e.clientX, e.clientY, spaceId);
-});
-
-el.spaceBtn?.addEventListener("contextmenu", (e) => {
-  if (!state.spaceId) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  closeSpaceMenu();
-  openSpaceContextMenu(e.clientX, e.clientY, state.spaceId);
-});
-
-    el.spaceContextMenu?.addEventListener("click", (e) => {
-      const btn = e.target.closest(".spaceContextItem");
-      if (!btn || !contextSpaceId) return;
-
-      const act = btn.dataset.act;
-
-      if (act === "settings") {
-        openSpaceSettings(contextSpaceId);
-        return;
-      }
-
-      if (act === "leave") {
-        leaveSpace(contextSpaceId);
-      }
-    });
-
-// --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
-  el.boardDesc = qs("#boardDesc");
-  if (el.boardDesc) {
-    el.boardDesc.addEventListener("click", () => {
-      if (el.boardDesc.getAttribute("contenteditable") === "false") {
-        el.boardDesc.setAttribute("contenteditable", "true");
-        el.boardDesc.focus();
-      }
-    });
-
-    el.boardDesc.addEventListener("blur", () => {
-      el.boardDesc.setAttribute("contenteditable", "false");
-      if (el.boardDesc.textContent.trim() === "") {
-        el.boardDesc.innerHTML = ""; // 텅 비우면 연필 다시 등장
-      }
-    });
-
-    el.boardDesc.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        el.boardDesc.blur();
-      }
-    });
-  }
+function hasActiveBoard() {
+  return !!state.boardId;
 }
+
+
 
 
 function closePlusMenu(){
@@ -1743,29 +1826,35 @@ function openSpaceSettings(spaceId) {
   closeBtn?.addEventListener("click", closeOverlay);
   cancelBtn?.addEventListener("click", closeOverlay);
 
-  saveBtn?.addEventListener("click", () => {
-    const nextName = nameInput?.value.trim();
-    const nextDesc = descInput?.value.trim() ?? "";
+  saveBtn?.addEventListener("click", async () => {
+    const next = ta.value.trim();
+    if (!next) return;
 
-    if (!nextName) {
-      alert("스페이스 이름을 입력해.");
-      nameInput?.focus();
-      return;
+    try {
+      const updatedMemo = await updateMemoRequest(id, next, picked);
+
+      const idx = state.data.memos.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) {
+        state.data.memos[idx] = {
+          ...state.data.memos[idx],
+          id: String(updatedMemo.id),
+          boardId: String(updatedMemo.board?.id ?? state.data.memos[idx].boardId),
+          authorId: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
+          author: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
+          content: updatedMemo.content ?? next,
+          color: updatedMemo.color ?? picked,
+          createdAt: updatedMemo.createdAt ?? state.data.memos[idx].createdAt,
+          updatedAt: updatedMemo.updatedAt ?? new Date().toISOString(),
+          attachments: []
+        };
+      }
+
+      renderAll();
+      openViewModal(id);
+    } catch (err) {
+      console.error(err);
+      alert("메모 수정에 실패했어.");
     }
-
-    const target = state.data.spaces.find(s => String(s.id) === String(spaceId));
-    if (target) {
-      target.name = nextName;
-      target.description = nextDesc;
-    }
-
-    if (String(state.spaceId) === String(spaceId)) {
-      syncSpaceLabel();
-    }
-
-    renderSpaceMenu();
-    renderAll();
-    closeOverlay();
   });
 
   deleteBtn?.addEventListener("click", () => {
@@ -1817,42 +1906,6 @@ function openDeleteSpaceConfirm(spaceId) {
   });
 }
 
-function deleteSpace(spaceId) {
-  const idx = state.data.spaces.findIndex(space => String(space.id) === String(spaceId));
-  if (idx < 0) return;
-
-  state.data.spaces.splice(idx, 1);
-
-  if (el.spaceSelect) {
-    const option = Array.from(el.spaceSelect.options).find(
-      opt => String(opt.value) === String(spaceId)
-    );
-    option?.remove();
-  }
-
-  if (String(state.spaceId) === String(spaceId)) {
-    if (state.data.spaces.length > 0) {
-      setSpace(state.data.spaces[0].id);
-      if (el.spaceSelect) {
-        el.spaceSelect.value = String(state.spaceId);
-      }
-    } else {
-      state.spaceId = null;
-      state.boardId = null;
-
-      if (el.spaceSelect) {
-        el.spaceSelect.value = "";
-      }
-    }
-  }
-
-  syncSpaceLabel();
-  syncSpaceOnboardingModal();
-  renderSpaceMenu();
-  renderAll();
-  closeOverlay();
-}
-
 async function requestDeleteSpace(spaceId) {
   const res = await fetch(`http://localhost:8080/spaces/${spaceId}`, {
     method: "DELETE",
@@ -1868,19 +1921,12 @@ async function deleteSpace(spaceId) {
   try {
     await requestDeleteSpace(spaceId);
 
-    const idx = state.data.spaces.findIndex(space => String(space.id) === String(spaceId));
+    const idx = state.data.spaces.findIndex(
+      space => String(space.id) === String(spaceId)
+    );
     if (idx < 0) return;
 
     state.data.spaces.splice(idx, 1);
-
-    if (String(state.spaceId) === String(spaceId)) {
-      if (state.data.spaces.length > 0) {
-        setSpace(state.data.spaces[0].id);
-      } else {
-        state.spaceId = null;
-        state.boardId = null;
-      }
-    }
 
     if (el.spaceSelect) {
       const option = Array.from(el.spaceSelect.options).find(
@@ -1889,6 +1935,24 @@ async function deleteSpace(spaceId) {
       option?.remove();
     }
 
+    if (String(state.spaceId) === String(spaceId)) {
+      if (state.data.spaces.length > 0) {
+        await setSpace(state.data.spaces[0].id);
+
+        if (el.spaceSelect) {
+          el.spaceSelect.value = String(state.spaceId);
+        }
+      } else {
+        state.spaceId = null;
+        state.boardId = null;
+
+        if (el.spaceSelect) {
+          el.spaceSelect.value = "";
+        }
+      }
+    }
+
+    syncSpaceLabel();
     syncSpaceOnboardingModal();
     renderSpaceMenu();
     renderAll();
@@ -1939,7 +2003,6 @@ async function fetchAndApplySpaces() {
     }
 
     const spaces = await response.json();
-
     state.data.spaces = Array.isArray(spaces) ? spaces : [];
 
     if (!el.spaceSelect) return;
@@ -1948,7 +2011,7 @@ async function fetchAndApplySpaces() {
 
     if (state.data.spaces.length === 0) {
       state.spaceId = "";
-      if (el.spaceLabel) el.spaceLabel.textContent = "null";
+      if (el.spaceLabel) el.spaceLabel.textContent = "여기눌러 추가";
       renderSpaceMenu();
       return;
     }
@@ -1972,21 +2035,328 @@ async function fetchAndApplySpaces() {
 
     const currentSpace = getSpaceById(state.spaceId);
     if (el.spaceLabel) {
-      el.spaceLabel.textContent = currentSpace?.name ?? "null";
+      el.spaceLabel.textContent = currentSpace?.name ?? "보드 없음";
     }
 
     renderSpaceMenu();
-    renderAll();
   } catch (error) {
     console.error("Space 로딩 에러:", error);
   }
 }
 
 // =========================
+// 보드
+// =========================
+
+async function createBoard(spaceId, name, description = "") {
+  const res = await fetch(`http://localhost:8080/boards`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      spaceId: Number(spaceId),
+      name,
+      description
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("보드 생성 실패 응답:", text);
+    throw new Error("보드 생성 실패");
+  }
+
+  return await res.json();
+}
+
+async function handleAddBoard() {
+  const currentSpace = getCurrentSpace();
+  if (!currentSpace) {
+    return;
+  }
+
+  const name = prompt("새 보드 이름");
+  if (!name || !name.trim()) return;
+
+  try {
+    const newBoard = await createBoard(currentSpace.id, name.trim(), "");
+    console.log("서버가 준 새 보드:", newBoard);
+    if (!Array.isArray(currentSpace.boards)) {
+      currentSpace.boards = [];
+    }
+
+    currentSpace.boards.push(newBoard);
+    state.boardId = String(newBoard.id);
+
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    alert("보드 생성에 실패했어.");
+  }
+}
+
+let contextBoardId = null;
+
+function openBoardContextMenu(x, y, boardId) {
+  if (!el.boardContextMenu) return;
+
+  contextBoardId = String(boardId);
+  el.boardContextMenu.classList.remove("hidden");
+
+  const menu = el.boardContextMenu;
+  const pad = 8;
+
+  requestAnimationFrame(() => {
+    const rect = menu.getBoundingClientRect();
+
+    let left = x;
+    let top = y;
+
+    if (left + rect.width > window.innerWidth - pad) {
+      left = window.innerWidth - rect.width - pad;
+    }
+
+    if (top + rect.height > window.innerHeight - pad) {
+      top = window.innerHeight - rect.height - pad;
+    }
+
+    menu.style.left = `${Math.max(pad, left)}px`;
+    menu.style.top = `${Math.max(pad, top)}px`;
+  });
+}
+
+function closeBoardContextMenu() {
+  contextBoardId = null;
+  el.boardContextMenu?.classList.add("hidden");
+}
+
+async function requestDeleteBoard(boardId) {
+  const res = await fetch(`http://localhost:8080/boards/${boardId}`, {
+    method: "DELETE",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("보드 삭제 실패");
+  }
+}
+
+function getBoardNameById(boardId) {
+  const currentSpace = getCurrentSpace();
+  const boards = currentSpace?.boards ?? [];
+
+  const board = boards.find(b =>
+    String(typeof b === "object" ? b.id : b) === String(boardId)
+  );
+
+  if (!board) return "알 수 없는 보드";
+
+  return typeof board === "object"
+    ? board.name
+    : String(board);
+}
+
+function openDeleteBoardConfirm(boardId) {
+  const boardName = getBoardNameById(boardId);
+  closeBoardContextMenu();
+
+  overlayMode = "modal";
+  openOverlay();
+  el.sidePanel?.classList.add("hidden");
+
+  if (!el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" style="width:min(360px, 92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle" style="color:#b42318;">보드 삭제</div>
+        <button class="dialogClose" type="button" id="deleteBoardCloseBtn">✕</button>
+      </div>
+      <div class="dialogBody">
+        <div style="font-size:14px; font-weight:800; line-height:1.5;">
+          <b>"${escapeHTML(boardName)}"</b> 보드를 삭제할까?
+        </div>
+        <div style="margin-top:10px; font-size:12px; font-weight:800; color:var(--muted);">
+          되돌리기 어렵다.
+        </div>
+        <div class="dialogActions" style="margin-top:18px;">
+          <button class="btn" type="button" id="deleteBoardCancelBtn">취소</button>
+          <button class="btn danger" type="button" id="deleteBoardConfirmBtn"
+            style="border:1px solid rgba(180,35,24,.18); color:#b42318; background:#fff5f5;">
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  qs("#deleteBoardCloseBtn")?.addEventListener("click", closeOverlay);
+  qs("#deleteBoardCancelBtn")?.addEventListener("click", closeOverlay);
+  qs("#deleteBoardConfirmBtn")?.addEventListener("click", () => deleteBoard(boardId));
+}
+
+async function deleteBoard(boardId) {
+  try {
+    await requestDeleteBoard(boardId);
+
+    const currentSpace = getCurrentSpace();
+    if (!currentSpace || !Array.isArray(currentSpace.boards)) return;
+
+    currentSpace.boards = currentSpace.boards.filter(b => {
+      const id = typeof b === "object" ? b.id : b;
+      return String(id) !== String(boardId);
+    });
+
+    state.data.memos = state.data.memos.filter(m => String(m.boardId) !== String(boardId));
+
+    if (String(state.boardId) === String(boardId)) {
+      if (currentSpace.boards.length > 0) {
+        const firstBoard = currentSpace.boards[0];
+        state.boardId = String(typeof firstBoard === "object" ? firstBoard.id : firstBoard);
+      } else {
+        state.boardId = null;
+      }
+    }
+
+    renderAll();
+    closeOverlay();
+  } catch (err) {
+    console.error(err);
+    alert("보드 삭제에 실패했어.");
+  }
+}
+
+function syncBoardAddButton() {
+  if (!el.addBoardBtn) return;
+  el.addBoardBtn.hidden = !hasAnySpace();
+}
+
+async function fetchBoardsBySpace(spaceId) {
+  const res = await fetch(`http://localhost:8080/boards/space/${spaceId}`, {
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("보드 목록 조회 실패");
+  }
+
+  return await res.json();
+}
+
+// =========================
+// Memo API
+// =========================
+
+async function fetchMemosByBoard(boardId) {
+  const res = await fetch(`http://localhost:8080/memos/board/${boardId}`, {
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    throw new Error("메모 목록 조회 실패");
+  }
+
+  return await res.json();
+}
+
+async function createMemoRequest(content, boardId, authorId, color) {
+  const params = new URLSearchParams({
+    content,
+    boardId: String(boardId),
+    authorId: String(authorId),
+    color
+  });
+
+  const res = await fetch(`http://localhost:8080/memos?${params.toString()}`, {
+    method: "POST",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("메모 생성 실패 응답:", text);
+    throw new Error("메모 생성 실패");
+  }
+
+  return await res.json();
+}
+
+async function updateMemoRequest(memoId, content, color) {
+  const params = new URLSearchParams({
+    content,
+    color
+  });
+
+  const res = await fetch(`http://localhost:8080/memos/${memoId}?${params.toString()}`, {
+    method: "PUT",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("메모 수정 실패 응답:", text);
+    throw new Error("메모 수정 실패");
+  }
+
+  return await res.json();
+}
+
+async function deleteMemoRequest(memoId) {
+  const res = await fetch(`http://localhost:8080/memos/${memoId}`, {
+    method: "DELETE",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("메모 삭제 실패 응답:", text);
+    throw new Error("메모 삭제 실패");
+  }
+}
+
+function applyMemos(memos) {
+  state.data.memos = Array.isArray(memos)
+    ? memos.map(m => ({
+        id: String(m.id),
+        boardId: String(m.boardId),
+        authorId: String(m.authorId),
+        author: String(m.authorId),
+        content: m.content ?? "",
+        color: m.color ?? "cream",
+        createdAt: m.createdAt ?? new Date().toISOString(),
+        updatedAt: m.updatedAt ?? null,
+        attachments: []
+      }))
+    : [];
+}
+
+async function reloadCurrentBoardMemos() {
+  if (!state.boardId) {
+    state.data.memos = [];
+    renderAll();
+    return;
+  }
+
+  try {
+    const memos = await fetchMemosByBoard(state.boardId);
+    applyMemos(memos);
+  } catch (err) {
+    console.error("현재 보드 메모 다시 불러오기 실패:", err);
+    state.data.memos = [];
+  }
+
+  renderAll();
+}
+
+
+
+// =========================
 // init
 // =========================
-function init(){
-  if(el.boardWrap) ro.observe(el.boardWrap);
+function init() {
+  if (el.boardWrap) ro.observe(el.boardWrap);
 
   bindEvents();
   bindColorPicker(el.quickColors);
@@ -1996,7 +2366,7 @@ function init(){
 
   const saved = localStorage.getItem("sidebarCollapsed");
 
-  if(saved === "1"){
+  if (saved === "1") {
     el.layout?.classList.add("sidebar-collapsed");
   } else {
     el.layout?.classList.remove("sidebar-collapsed");
@@ -2008,16 +2378,8 @@ function init(){
   autoGrowTextarea(el.quickInput);
   autoGrowTextarea(el.quickInputDock);
 
-  if (hasAnySpace()) {
-    if (!state.spaceId && state.data.spaces[0]?.id != null) {
-      setSpace(state.data.spaces[0].id);
-    }
-
-    syncSpaceLabel();
-    renderSpaceMenu();
-  }
-
   renderAll();
 }
+
 
 init();

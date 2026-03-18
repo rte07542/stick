@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface MemoRepository extends JpaRepository<Memo, Long> {
     List<Memo> findByBoardId(Long BoardId);
+    Long countByBoardId(Long boardId);
 }
