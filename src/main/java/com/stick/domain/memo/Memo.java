@@ -1,5 +1,6 @@
 package com.stick.domain.memo;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.stick.domain.board.Board;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,16 +20,13 @@ public class Memo {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
+    @JsonBackReference
     private Board board;
 
     private Long authorId;
-
     @Column(columnDefinition = "TEXT")
     private String content;
-
     private String color;
-
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

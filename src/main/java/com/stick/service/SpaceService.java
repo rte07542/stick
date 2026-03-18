@@ -4,6 +4,7 @@ import com.stick.domain.space.Space;
 import com.stick.repository.SpaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,6 +50,7 @@ public class SpaceService {
     // optional안에서 Space를 찾아라. 있으면 반환, 없으면 에러.
     // optional이 뭘까? "값이 있을수도 없을수도 있음"을 안전하게 다루는 상자
 
+    @Transactional
     public void deleteSpace(Long id) {
         Space space = spaceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Space가 없음. id=" + id));

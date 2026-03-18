@@ -3,6 +3,7 @@ package com.stick.controller;
 
 import com.stick.domain.board.Board;
 import com.stick.dto.BoardCreateRequest;
+import com.stick.dto.BoardResponse;
 import com.stick.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class BoardController {
     }
 
     @GetMapping("/space/{spaceId}")
-    public List<Board> getBoardsBySpaceId(@PathVariable Long spaceId) {
+    public List<BoardResponse> getBoardsBySpaceId(@PathVariable Long spaceId) {
         return boardService.getBoardsBySpaceId(spaceId);
     }
 

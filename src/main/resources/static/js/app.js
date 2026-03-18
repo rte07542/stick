@@ -244,40 +244,6 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
 
 }
 
-
-// =========================
-// renderAll
-// =========================
-function renderAll() {
-  syncBoardAddButton();
-
-  if (!hasAnySpace()) {
-    showOnboarding(true);
-    return;
-  }
-
-  showOnboarding(false);
-
-  const currentSpace = getCurrentSpace();
-
-  if (!state.spaceId || !currentSpace) {
-    if (el.boardList) el.boardList.innerHTML = "";
-    if (el.board) el.board.innerHTML = "";
-    if (el.boardName) el.boardName.textContent = "보드 없음";
-    return;
-  }
-
-  syncSpaceLabel();
-  renderBoards();
-  renderBoard();
-  applyBoardCols();
-
-  const space = getCurrentSpace();
-  if (el.memberCount) {
-    el.memberCount.textContent = String((space?.members ?? []).length);
-  }
-}
-
 // =========================
 // constants
 // =========================
@@ -2230,7 +2196,9 @@ async function deleteBoard(boardId) {
 
 function syncBoardAddButton() {
   if (!el.addBoardBtn) return;
-  el.addBoardBtn.hidden = !hasAnySpace();
+
+  const hasSpace = !!state.spaceId && !!getCurrentSpace();
+  el.addBoardBtn.classList.toggle("hidden", !hasSpace);
 }
 
 async function fetchBoardsBySpace(spaceId) {
@@ -2350,6 +2318,38 @@ async function reloadCurrentBoardMemos() {
   renderAll();
 }
 
+// =========================
+// renderAll
+// =========================
+function renderAll() {
+  syncBoardAddButton();
+
+  if (!hasAnySpace()) {
+    showOnboarding(true);
+    return;
+  }
+
+  showOnboarding(false);
+
+  const currentSpace = getCurrentSpace();
+
+  if (!state.spaceId || !currentSpace) {
+    if (el.boardList) el.boardList.innerHTML = "";
+    if (el.board) el.board.innerHTML = "";
+    if (el.boardName) el.boardName.textContent = "보드 없음";
+    return;
+  }
+
+  syncSpaceLabel();
+  renderBoards();
+  renderBoard();
+  applyBoardCols();
+
+  const space = getCurrentSpace();
+  if (el.memberCount) {
+    el.memberCount.textContent = String((space?.members ?? []).length);
+  }
+}
 
 
 // =========================

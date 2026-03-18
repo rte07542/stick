@@ -11,9 +11,9 @@ public class BoardResponse {
     private String name;
     private String description;
     private Long spaceId;
-    private int memoCount;
+    private long memoCount;
 
-    public static BoardResponse from(Board board, int memoCount) {
+    public static BoardResponse from(Board board, long memoCount) {
         return BoardResponse.builder()
                 .id(board.getId())
                 .name(board.getName())

@@ -8,6 +8,7 @@ import com.stick.repository.SpaceRepository;
 import com.stick.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,7 +42,7 @@ public class BoardService {
         return boards.stream()
                 .map(board -> BoardResponse.from(
                         board,
-                        (int) memoRepository.countByBoardId(board.getId())?????
+                        memoRepository.countByBoardId(board.getId())
                 ))
                 .toList();
     } // 전달받은 spaceId에 속한 Board목록을 DB에서 찾아서 반환하는 함수
@@ -62,6 +63,7 @@ public class BoardService {
         return boardRepository.save(board);
     }//수정함수 : 보드 이름이나 설명 바꾸는 기능
 
+    @Transactional
     public void deleteBoard(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 Board가 없음. id="+id));
