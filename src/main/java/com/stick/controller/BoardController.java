@@ -4,6 +4,7 @@ package com.stick.controller;
 import com.stick.domain.board.Board;
 import com.stick.dto.BoardCreateRequest;
 import com.stick.dto.BoardResponse;
+import com.stick.dto.BoardUpdateRequest;
 import com.stick.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -45,5 +46,10 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public void deleteBoard(@PathVariable Long id) {
         boardService.deleteBoard(id);
+    }
+
+    @PatchMapping("/{id}")
+    public Board updateBoard(@PathVariable Long id, @RequestBody BoardUpdateRequest request){
+        return boardService.updateBoard(id, request.getName(), request.getDescription());
     }
 }

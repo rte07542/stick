@@ -1,6 +1,7 @@
 package com.stick.controller;
 
 import com.stick.domain.memo.Memo;
+import com.stick.dto.MemoCreateRequest;
 import com.stick.dto.MemoResponse;
 import com.stick.service.MemoService;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +16,8 @@ public class MemoController {
     private final MemoService memoService;
 
     @PostMapping
-    public MemoResponse createMemo(@RequestParam String content,
-                           @RequestParam Long boardId,
-                           @RequestParam Long authorId,
-                           @RequestParam String color) {
-        Memo memo = memoService.createMemo(content, boardId, authorId, color);
-        return MemoResponse.from(memo);
+    public MemoResponse createMemo(@RequestBody MemoCreateRequest request) {
+        return memoService.createMemo(request);
     }
 
     @GetMapping("/board/{boardId}")

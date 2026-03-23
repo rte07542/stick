@@ -56,6 +56,13 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Board가 없음. id=" + boardId));
 
+        if(name != null) {
+            board.setName(name);
+        }
+        if (description != null) {
+            board.setDescription(description);
+        }
+
         board.setName(name);
         board.setDescription(description);
         board.setUpdatedAt(LocalDateTime.now());

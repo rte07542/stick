@@ -96,15 +96,15 @@ function bindEvents(){
   el.quickInput?.addEventListener("keydown", onQuickKeydown);
   el.quickInputDock?.addEventListener("keydown", onQuickKeydownDock);
 
-  el.composerPlus?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openPlusMenu(el.composerPlus, el.composerFile);
-  });
+el.composerPlus?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openNewMemoModal();
+});
 
-  el.composerPlusDock?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openPlusMenu(el.composerPlusDock, el.composerFileDock);
-  });
+el.composerPlusDock?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openNewMemoModal();
+});
 
   el.composerFile?.addEventListener("change", () => onComposerFiles(el.composerFile));
   el.composerFileDock?.addEventListener("change", () => onComposerFiles(el.composerFileDock));
@@ -201,10 +201,26 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
       }
     });
 
-    el.boardDesc.addEventListener("blur", () => {
+    el.boardDesc.addEventListener("blur", async () => {
       el.boardDesc.setAttribute("contenteditable", "false");
-      if (el.boardDesc.textContent.trim() === "") {
-        el.boardDesc.innerHTML = ""; // 텅 비우면 연필 다시 등장
+
+      const currentBoard = getCurrentBoard();
+      if (!currentBoard) return;
+
+      const nextDescription = el.boardDesc.textContent.trim();
+
+      try {
+        const updatedBoard = await updateBoard(currentBoard.id, {
+          name: currentBoard.name,
+          description: nextDescription
+        });
+
+        currentBoard.description = updatedBoard.description ?? nextDescription;
+        syncBoardHeader();
+      } catch (err) {
+        console.error(err);
+        alert("보드 설명 저장에 실패했어.");
+        el.boardDesc.textContent = currentBoard.description ?? "";
       }
     });
 
@@ -421,7 +437,34 @@ function syncAttachHint(hintEl, draftAttachments){
   hintEl.textContent =
     draftAttachments.length >= MAX_ATTACH
       ? `이미지는 최대 ${MAX_ATTACH}장까지 가능.`
-      : `이미지 붙여넣기(Ctrl+V) 가능. 지금은 임시 프리뷰만 뜸. (${draftAttachments.length}/${MAX_ATTACH})`;
+      : `이미지 붙여넣기(Ctrl+V) 가능.(${draftAttachments.length}/${MAX_ATTACH})`;
+}
+
+function getRouteFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+
+  return {
+    spaceId: params.get("space"),
+    boardId: params.get("board")
+  };
+}
+
+function setRouteToUrl(spaceId, boardId = null) {
+  const url = new URL(window.location);
+
+  if (spaceId) {
+    url.searchParams.set("space", String(spaceId));
+  } else {
+    url.searchParams.delete("space");
+  }
+
+  if (boardId) {
+    url.searchParams.set("board", String(boardId));
+  } else {
+    url.searchParams.delete("board");
+  }
+
+  history.replaceState({}, "", url);
 }
 
 
@@ -453,19 +496,22 @@ async function loadInitialData() {
   try {
     await fetchAndApplySpaces();
 
+    const { spaceId: routeSpaceId, boardId: routeBoardId } = getRouteFromUrl();
+
     if (state.data.spaces.length > 0) {
-      const stillValid = state.data.spaces.some(
-        space => String(space.id) === String(state.spaceId)
+      const targetSpace = state.data.spaces.find(
+        space => String(space.id) === String(routeSpaceId)
       );
 
-      const targetSpaceId = stillValid
-        ? state.spaceId
-        : state.data.spaces[0].id;
+      const targetSpaceId = targetSpace
+        ? String(targetSpace.id)
+        : String(state.data.spaces[0].id);
 
-      await setSpace(targetSpaceId);
+      await setSpace(targetSpaceId, { boardId: routeBoardId });
     } else {
       state.spaceId = null;
       state.boardId = null;
+      setRouteToUrl(null, null);
       renderAll();
     }
 
@@ -475,6 +521,7 @@ async function loadInitialData() {
     state.data.spaces = [];
     state.spaceId = null;
     state.boardId = null;
+    setRouteToUrl(null, null);
     syncSpaceOnboardingModal();
     renderAll();
   }
@@ -767,7 +814,9 @@ function getMemosForBoard(){
 // =========================
 // actions (state changes)
 // =========================
-async function setSpace(spaceId) {
+async function setSpace(spaceId, options = {}) {
+  const { boardId = null } = options;
+
   state.spaceId = String(spaceId);
 
   const currentSpace = getCurrentSpace();
@@ -778,7 +827,13 @@ async function setSpace(spaceId) {
     currentSpace.boards = Array.isArray(boards) ? boards : [];
 
     if (currentSpace.boards.length > 0) {
-      state.boardId = String(currentSpace.boards[0].id);
+      const targetBoard = currentSpace.boards.find(
+        board => String(board.id) === String(boardId)
+      );
+
+      state.boardId = targetBoard
+        ? String(targetBoard.id)
+        : String(currentSpace.boards[0].id);
 
       const memos = await fetchMemosByBoard(state.boardId);
       applyMemos(memos);
@@ -797,6 +852,7 @@ async function setSpace(spaceId) {
   if (el.searchInput) el.searchInput.value = "";
   syncSearchClear();
 
+  setRouteToUrl(state.spaceId, state.boardId);
   renderAll();
 }
 
@@ -815,8 +871,10 @@ async function setBoard(boardId) {
     state.data.memos = [];
   }
 
+  setRouteToUrl(state.spaceId, state.boardId);
   renderAll();
 }
+
 
 async function deleteMemo(id) {
   try {
@@ -833,7 +891,13 @@ async function submitQuick(textarea) {
   if (!text || !state.boardId) return;
 
   try {
-    await createMemoRequest(text, state.boardId, 1, state.quickColor);
+    await createMemoRequest({
+      content: text,
+      boardId: state.boardId,
+      authorId: 1,
+      color: state.quickColor,
+      attachmentIds: []
+    });
     textarea.value = "";
     autoGrowTextarea(textarea);
     await reloadCurrentBoardMemos();
@@ -1131,6 +1195,10 @@ function openNewMemoModal(initialFiles = []){
       <div class="dialogBody">
         <textarea id="newText" class="dialogText" placeholder="메모를 입력..."></textarea>
         <div class="attachPreview" id="attachPreview"></div>
+                <div class="memoAttachBar">
+                  <input type="file" id="memoFileInput" multiple hidden>
+                  <button type="button" id="memoAttachBtn" class="attachBtn">파일 첨부</button>
+                </div>
         <div class="attachHint" id="attachHint">이미지 붙여넣기(Ctrl+V) 가능. 지금은 임시 프리뷰만 뜸.</div>
 
         <div class="dialogMeta">
@@ -1160,6 +1228,8 @@ function openNewMemoModal(initialFiles = []){
   const attachHint = qs("#attachHint", dialog);
   const attachPreview = qs("#attachPreview", dialog);
   const draftAttachments = createDraftAttachments();
+  const memoFileInput = qs("#memoFileInput", dialog);
+  const memoAttachBtn = qs("#memoAttachBtn", dialog);
 
   overlayCleanup = () => {
     draftAttachments.forEach(a => URL.revokeObjectURL(a.objectUrl));
@@ -1190,6 +1260,32 @@ rerenderAtt();
 
   closeBtn?.addEventListener("click", closeOverlay);
 
+  memoAttachBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    memoFileInput?.click();
+  });
+
+  memoFileInput?.addEventListener("change", (e) => {
+    const files = Array.from(e.target.files || []);
+
+    for (const file of files) {
+      if (!file?.type?.startsWith("image/")) continue;
+      if (draftAttachments.length >= MAX_ATTACH) break;
+
+      const id = crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random();
+
+      const objectUrl = URL.createObjectURL(file);
+      draftAttachments.push({ id, file, objectUrl });
+    }
+
+    rerenderAtt();
+
+    // 같은 파일 다시 고를 수 있게 초기화
+    memoFileInput.value = "";
+  });
+
   // ✅ 모달 배경 초기색
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
   dialog.classList.add(picked);
@@ -1218,13 +1314,22 @@ createBtn?.addEventListener("click", async () => {
   const text = newText.value.trim();
   if (!text && draftAttachments.length === 0) return;
 
-  if (draftAttachments.length > 0) {
-    alert("이미지 업로드는 아직 백엔드 연결 안 됨.");
-    return;
-  }
-
   try {
-    await createMemoRequest(text, state.boardId, 1, picked ?? state.quickColor);
+    let attachmentIds = [];
+
+    if (draftAttachments.length > 0) {
+      const uploaded = await uploadFiles(draftAttachments.map(att => att.file));
+      attachmentIds = uploaded.map(file => file.id);
+    }
+
+    await createMemoRequest({
+      content: text,
+      boardId: state.boardId,
+      authorId: 1,
+      color: picked ?? state.quickColor,
+      attachmentIds
+    });
+
     closeOverlay();
     await reloadCurrentBoardMemos();
   } catch (err) {
@@ -1232,7 +1337,6 @@ createBtn?.addEventListener("click", async () => {
     alert("메모 저장에 실패했어.");
   }
 });
-
   newText?.focus();
 }
 
@@ -1360,7 +1464,7 @@ async function onSpaceChange() {
   const next = el.spaceSelect?.value;
   if (!next) return;
 
-  await setSpace(next);
+  await setSpace(next, { boardId: null });
   syncSpaceLabel();
   renderSpaceMenu();
 }
@@ -1623,44 +1727,6 @@ function hasActiveBoard() {
 function closePlusMenu(){
   plusMenuEl?.remove();
   plusMenuEl = null;
-}
-
-function openPlusMenu(anchorBtn, fileInput){
-  closePlusMenu();
-
-  const r = anchorBtn.getBoundingClientRect();
-  const menu = document.createElement("div");
-  menu.className = "plusMenu";
-  menu.innerHTML = `
-    <button type="button" data-act="attach">사진 첨부</button>
-    <button type="button" data-act="expand">확대 모달로 작성하기</button>
-  `;
-
-  // 화면에 붙이고 위치 잡기
-  document.body.appendChild(menu);
-
-  menu.style.left = `${Math.max(12, r.left)}px`;
-  menu.style.top  = `${r.top - menu.offsetHeight - 10}px`; // 위로 뜨게
-  // 아래로 뜨게 하고 싶으면: r.bottom + 10
-
-  menu.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-act]");
-    if(!btn) return;
-
-    const act = btn.dataset.act;
-    closePlusMenu();
-
-    if(act === "attach"){
-      fileInput?.click();
-      return;
-    }
-    if(act === "expand"){
-      openNewMemoModal(); // 기존 모달 재사용 :contentReference[oaicite:6]{index=6}
-      return;
-    }
-  });
-
-  plusMenuEl = menu;
 }
 
 function onComposerFiles(fileInput){
@@ -2049,14 +2115,14 @@ async function handleAddBoard() {
   try {
     const newBoard = await createBoard(currentSpace.id, name.trim(), "");
     console.log("서버가 준 새 보드:", newBoard);
+
     if (!Array.isArray(currentSpace.boards)) {
       currentSpace.boards = [];
     }
 
     currentSpace.boards.push(newBoard);
-    state.boardId = String(newBoard.id);
 
-    renderAll();
+    await setBoard(newBoard.id);
   } catch (err) {
     console.error(err);
     alert("보드 생성에 실패했어.");
@@ -2229,17 +2295,20 @@ async function fetchMemosByBoard(boardId) {
   return await res.json();
 }
 
-async function createMemoRequest(content, boardId, authorId, color) {
-  const params = new URLSearchParams({
-    content,
-    boardId: String(boardId),
-    authorId: String(authorId),
-    color
-  });
-
-  const res = await fetch(`http://localhost:8080/memos?${params.toString()}`, {
+async function createMemoRequest({ content, boardId, authorId, color, attachmentIds = [] }) {
+  const res = await fetch("http://localhost:8080/memos", {
     method: "POST",
-    credentials: "include"
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      content,
+      boardId: Number(boardId),
+      authorId: Number(authorId),
+      color,
+      attachmentIds
+    })
   });
 
   if (!res.ok) {
@@ -2285,19 +2354,17 @@ async function deleteMemoRequest(memoId) {
 }
 
 function applyMemos(memos) {
-  state.data.memos = Array.isArray(memos)
-    ? memos.map(m => ({
-        id: String(m.id),
-        boardId: String(m.boardId),
-        authorId: String(m.authorId),
-        author: String(m.authorId),
-        content: m.content ?? "",
-        color: m.color ?? "cream",
-        createdAt: m.createdAt ?? new Date().toISOString(),
-        updatedAt: m.updatedAt ?? null,
-        attachments: []
-      }))
-    : [];
+  state.data.memos = (Array.isArray(memos) ? memos : []).map(m => ({
+    id: String(m.id),
+    boardId: String(m.board?.id ?? m.boardId),
+    authorId: String(m.authorId ?? ""),
+    author: String(m.authorId ?? ""),
+    content: m.content ?? "",
+    color: m.color ?? "cream",
+    createdAt: m.createdAt ?? new Date().toISOString(),
+    updatedAt: m.updatedAt ?? null,
+    attachments: Array.isArray(m.attachments) ? m.attachments : []
+  }));
 }
 
 async function reloadCurrentBoardMemos() {
@@ -2317,6 +2384,150 @@ async function reloadCurrentBoardMemos() {
 
   renderAll();
 }
+
+function getRouteFromUrl() { //URL 읽는 함수
+  const params = new URLSearchParams(window.location.search);
+
+  const space = params.get("space");
+  const board = params.get("board");
+
+  return {
+    spaceId: space ? Number(space) : null,
+    boardId: board ? Number(board) : null
+  };
+}
+
+function setRouteToUrl(spaceId, boardId = null) { //URL 쓰는 함수
+  const url = new URL(window.location);
+
+  if (spaceId !== null && spaceId !== undefined) {
+    url.searchParams.set("space", spaceId);
+  } else {
+    url.searchParams.delete("space");
+  }
+
+  if (boardId !== null && boardId !== undefined) {
+    url.searchParams.set("board", boardId);
+  } else {
+    url.searchParams.delete("board");
+  }
+
+  history.replaceState({}, "", url);
+}
+
+function selectSpace(spaceId) { //스페이스 선택 함수
+  state.spaceId = Number(spaceId);
+  state.boardId = null;
+
+  setRouteToUrl(state.spaceId, null);
+  render();
+}
+
+function selectBoard(boardId) { //보드 선택 함수
+  state.boardId = Number(boardId);
+
+  setRouteToUrl(state.spaceId, state.boardId);
+  render();
+}
+
+function initSelection() {
+  const { spaceId, boardId } = getRouteFromUrl();
+
+  const parsedSpaceId = spaceId ? Number(spaceId) : null;
+  const parsedBoardId = boardId ? Number(boardId) : null;
+
+  const foundSpace = state.data.spaces.find(space => space.id === parsedSpaceId);
+
+  if (foundSpace) {
+    state.spaceId = foundSpace.id;
+  } else {
+    state.spaceId = state.data.spaces.length > 0 ? state.data.spaces[0].id : null;
+  }
+
+  if (state.spaceId !== null) {
+    const boardsInSpace = state.data.boards.filter(
+      board => board.spaceId === state.spaceId
+    );
+
+    const foundBoard = boardsInSpace.find(board => board.id === parsedBoardId);
+
+    if (foundBoard) {
+      state.boardId = foundBoard.id;
+    } else {
+      state.boardId = boardsInSpace.length > 0 ? boardsInSpace[0].id : null;
+    }
+  } else {
+    state.boardId = null;
+  }
+
+  setRouteToUrl(state.spaceId, state.boardId);
+}
+
+function getCurrentBoard() { //보드 찾는 함수
+  const currentSpace = getCurrentSpace();
+  if (!currentSpace || !Array.isArray(currentSpace.boards)) return null;
+
+  return currentSpace.boards.find(
+    board => String(board.id) === String(state.boardId)
+  ) ?? null;
+}
+
+function syncBoardHeader() { //board header 화면 동기화 함수
+  const currentBoard = getCurrentBoard();
+
+  if (el.boardName) {
+    el.boardName.textContent = currentBoard?.name
+      ? `#${currentBoard.name}`
+      : "보드 없음";
+  }
+
+  if (el.boardDesc) {
+    el.boardDesc.textContent = currentBoard?.description ?? "";
+  }
+}
+
+async function updateBoard(boardId, payload) { // 보드 설명 수정 api 함수
+  const res = await fetch(`http://localhost:8080/boards/${boardId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    credentials: "include",
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("보드 수정 실패 응답:", text);
+    throw new Error("보드 수정 실패");
+  }
+
+  return await res.json();
+}
+
+async function uploadFiles(files) { //파일 업로드 함수
+  const formData = new FormData();
+
+  files.forEach(file => {
+    formData.append("files", file);
+  });
+
+  const res = await fetch("http://localhost:8080/uploads", {
+    method: "POST",
+    body: formData,
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("업로드 실패:", text);
+    throw new Error("업로드 실패");
+  }
+
+  return await res.json();
+}
+
+
 
 // =========================
 // renderAll
@@ -2342,6 +2553,7 @@ function renderAll() {
 
   syncSpaceLabel();
   renderBoards();
+  syncBoardHeader();
   renderBoard();
   applyBoardCols();
 
@@ -2350,7 +2562,6 @@ function renderAll() {
     el.memberCount.textContent = String((space?.members ?? []).length);
   }
 }
-
 
 // =========================
 // init
@@ -2370,6 +2581,14 @@ function init() {
     el.layout?.classList.add("sidebar-collapsed");
   } else {
     el.layout?.classList.remove("sidebar-collapsed");
+  }
+
+  async function init() {
+    await loadSpaces();
+    await loadBoards();
+
+    initSelection();
+    render();
   }
 
   syncColorUI();

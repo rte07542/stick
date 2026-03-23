@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -16,6 +17,7 @@ public class MemoResponse {
     private String color;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<UploadFileResponse> attachments;
 
     public static MemoResponse from(Memo memo) {
         return MemoResponse.builder()
@@ -26,6 +28,13 @@ public class MemoResponse {
                 .color(memo.getColor())
                 .createdAt(memo.getCreatedAt())
                 .updatedAt(memo.getUpdatedAt())
+                .attachments(
+                        memo.getAttachments() == null
+                        ? List.of()
+                                : memo.getAttachments().stream()
+                                .map(UploadFileResponse::from)
+                                .toList()
+                )
                 .build();
     }
 }
