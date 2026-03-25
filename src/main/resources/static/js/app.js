@@ -51,8 +51,6 @@ const el = {
   toggleSidebarBtn: qs("#toggleSidebar"),
   splitter: qs("#splitter"),
 
-  memberCount: qs("#memberCount"),
-
   onboardingState: qs("#onboardingState"),
   inviteCodeInput: qs("#inviteCodeInput"),
   joinByCodeBtn: qs("#joinByCodeBtn"),
@@ -210,10 +208,7 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
       const nextDescription = el.boardDesc.textContent.trim();
 
       try {
-        const updatedBoard = await updateBoard(currentBoard.id, {
-          name: currentBoard.name,
-          description: nextDescription
-        });
+
 
         currentBoard.description = updatedBoard.description ?? nextDescription;
         syncBoardHeader();
@@ -247,16 +242,21 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
     openBoardContextMenu(e.clientX, e.clientY, boardId);
   });
 
-  el.boardContextMenu?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".boardContextItem");
-    if (!btn || !contextBoardId) return;
+ el.boardContextMenu?.addEventListener("click", (e) => {
+   const btn = e.target.closest(".boardContextItem");
+   if (!btn || !contextBoardId) return;
 
-    const act = btn.dataset.act;
+   const act = btn.dataset.act;
 
-    if (act === "delete") {
-      openDeleteBoardConfirm(contextBoardId);
-    }
-  });
+   if (act === "rename") {
+     openRenameBoardModal(contextBoardId);
+     return;
+   }
+
+   if (act === "delete") {
+     openDeleteBoardConfirm(contextBoardId);
+   }
+ });
 
 }
 
@@ -293,10 +293,32 @@ const state = {
 };
 
 function updateBoardStatus(data) {
-  // data = { memoCount: 51, memberCount: 9, lastModified: "01/06 00:00:00" }
-  if (qs("#memoCount")) qs("#memoCount").textContent = data.memoCount;
-  if (qs("#memberCount")) qs("#memberCount").textContent = data.memberCount;
-  if (qs("#lastModified")) qs("#lastModified").textContent = data.lastModified;
+  if (qs("#memoCount")) {
+    qs("#memoCount").textContent = data?.memoCount ?? 0;
+  }
+
+  if (qs("#lastModified")) {
+    qs("#lastModified").textContent = data?.lastModified
+      ? formatDate(data.lastModified)
+      : "-";
+  }
+}
+
+function syncBoardSummary() {
+  const currentBoard = getCurrentBoard();
+
+  if (!currentBoard) {
+    updateBoardStatus({
+      memoCount: 0,
+      lastModified: null
+    });
+    return;
+  }
+
+  updateBoardStatus({
+    memoCount: currentBoard.memoCount ?? 0,
+    lastModified: currentBoard.lastModified ?? null
+  });
 }
 
 function autoGrowTextarea(ta) {
@@ -603,12 +625,18 @@ loadInitialData();
 // =========================
 // Memo View / Edit Modal
 // =========================
+
+function isMemoEdited(memo) {
+  if (!memo?.createdAt || !memo?.updatedAt) return false;
+  return new Date(memo.updatedAt).getTime() !== new Date(memo.createdAt).getTime();
+}
+
 function openViewModal(id){
   const m = state.data.memos.find(x => x.id === id);
   if(!m) return;
 
   const canEdit = (String(m.authorId) === String(state.me));
-  const isEdited = !!m.updatedAt;
+  const isEdited = isMemoEdited(m);
 
   overlayMode = "modal";
   openOverlay();
@@ -763,18 +791,37 @@ function openEditModal(id){
   });
 
   // 저장
-  saveBtn?.addEventListener("click", () => {
+  saveBtn?.addEventListener("click", async () => {
     const next = ta.value.trim();
-    if(!next) return;
+    if (!next) return;
 
-    updateMemo(id, {
-      content: next,
-      color: picked,
-      updatedAt: new Date().toISOString(),
-    });
+    try {
+      const updatedMemo = await updateMemoRequest(id, next, picked);
 
-    renderAll();
-    openViewModal(id); // 저장 후 보기로
+      const idx = state.data.memos.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) {
+        state.data.memos[idx] = {
+          ...state.data.memos[idx],
+          id: String(updatedMemo.id),
+          boardId: String(updatedMemo.board?.id ?? state.data.memos[idx].boardId),
+          authorId: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
+          author: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
+          content: updatedMemo.content ?? next,
+          color: updatedMemo.color ?? picked,
+          createdAt: updatedMemo.createdAt ?? state.data.memos[idx].createdAt,
+          updatedAt: updatedMemo.updatedAt ?? state.data.memos[idx].updatedAt,
+          attachments: Array.isArray(updatedMemo.attachments)
+            ? updatedMemo.attachments
+            : state.data.memos[idx].attachments
+        };
+      }
+
+      renderAll();
+      openViewModal(id);
+    } catch (err) {
+      console.error(err);
+      alert("메모 수정에 실패했어.");
+    }
   });
 
   // UX: 열자마자 포커스
@@ -920,7 +967,6 @@ function showOnboarding(show){
 
   if(el.board) el.board.innerHTML = "";
   if(el.boardList) el.boardList.innerHTML = "";
-  if(el.memberCount) el.memberCount.textContent = "0";
 
   if(el.boardName){
     el.boardName.textContent = show ? "보드 없음" : el.boardName.textContent;
@@ -1858,37 +1904,6 @@ function openSpaceSettings(spaceId) {
   closeBtn?.addEventListener("click", closeOverlay);
   cancelBtn?.addEventListener("click", closeOverlay);
 
-  saveBtn?.addEventListener("click", async () => {
-    const next = ta.value.trim();
-    if (!next) return;
-
-    try {
-      const updatedMemo = await updateMemoRequest(id, next, picked);
-
-      const idx = state.data.memos.findIndex(x => String(x.id) === String(id));
-      if (idx >= 0) {
-        state.data.memos[idx] = {
-          ...state.data.memos[idx],
-          id: String(updatedMemo.id),
-          boardId: String(updatedMemo.board?.id ?? state.data.memos[idx].boardId),
-          authorId: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
-          author: String(updatedMemo.authorId ?? state.data.memos[idx].authorId),
-          content: updatedMemo.content ?? next,
-          color: updatedMemo.color ?? picked,
-          createdAt: updatedMemo.createdAt ?? state.data.memos[idx].createdAt,
-          updatedAt: updatedMemo.updatedAt ?? new Date().toISOString(),
-          attachments: []
-        };
-      }
-
-      renderAll();
-      openViewModal(id);
-    } catch (err) {
-      console.error(err);
-      alert("메모 수정에 실패했어.");
-    }
-  });
-
   deleteBtn?.addEventListener("click", () => {
     openDeleteSpaceConfirm(spaceId);
   });
@@ -2203,6 +2218,7 @@ function openDeleteBoardConfirm(boardId) {
   el.modalRoot.innerHTML = `
     <div class="dialog" style="width:min(360px, 92vw);">
       <div class="dialogHead">
+
         <div class="dialogTitle" style="color:#b42318;">보드 삭제</div>
         <button class="dialogClose" type="button" id="deleteBoardCloseBtn">✕</button>
       </div>
@@ -2258,6 +2274,132 @@ async function deleteBoard(boardId) {
     console.error(err);
     alert("보드 삭제에 실패했어.");
   }
+}
+
+async function requestUpdateBoard(boardId, name, description = "") {
+  const params = new URLSearchParams({
+    name,
+    description
+  });
+
+  const res = await fetch(`http://localhost:8080/boards/${boardId}?${params.toString()}`, {
+    method: "PUT",
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("보드 수정 실패 응답:", text);
+    throw new Error("보드 수정 실패");
+  }
+
+  return await res.json();
+}
+
+function openRenameBoardModal(boardId) {
+  const currentSpace = getCurrentSpace();
+  const boards = currentSpace?.boards ?? [];
+
+  const board = boards.find(b =>
+    String(typeof b === "object" ? b.id : b) === String(boardId)
+  );
+
+  if (!board || typeof board !== "object") return;
+
+  closeBoardContextMenu();
+
+  overlayMode = "modal";
+  openOverlay();
+  el.sidePanel?.classList.add("hidden");
+
+  if (!el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" style="width:min(380px, 92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle">보드명 변경</div>
+        <button class="dialogClose" type="button" id="renameBoardCloseBtn">✕</button>
+      </div>
+      <div class="dialogBody">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label for="renameBoardInput" style="font-size:12px; font-weight:900; color:var(--muted);">
+            보드 이름
+          </label>
+          <input
+            id="renameBoardInput"
+            type="text"
+            value="${escapeHTML(board.name ?? "")}"
+            style="height:44px; border:1px solid var(--line); border-radius:12px; padding:0 12px; font-size:14px; font-weight:700; outline:none; background:#fff;"
+            maxlength="30"
+          />
+        </div>
+
+        <div class="dialogActions" style="margin-top:18px;">
+          <button class="btn" type="button" id="renameBoardCancelBtn">취소</button>
+          <button class="btn primary" type="button" id="renameBoardSaveBtn">저장</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const input = qs("#renameBoardInput");
+  const closeBtn = qs("#renameBoardCloseBtn");
+  const cancelBtn = qs("#renameBoardCancelBtn");
+  const saveBtn = qs("#renameBoardSaveBtn");
+
+  closeBtn?.addEventListener("click", closeOverlay);
+  cancelBtn?.addEventListener("click", closeOverlay);
+
+  saveBtn?.addEventListener("click", async () => {
+    const nextName = input?.value.trim();
+    if (!nextName) {
+      alert("보드 이름을 입력해.");
+      input?.focus();
+      return;
+    }
+
+    try {
+      const updatedBoard = await requestUpdateBoard(
+        boardId,
+        nextName,
+        board.description ?? ""
+      );
+
+      const idx = boards.findIndex(b =>
+        String(typeof b === "object" ? b.id : b) === String(boardId)
+      );
+
+      if (idx >= 0 && typeof boards[idx] === "object") {
+        boards[idx] = {
+          ...boards[idx],
+          ...updatedBoard,
+          id: updatedBoard.id ?? boards[idx].id,
+          name: updatedBoard.name ?? nextName
+        };
+      }
+
+      if (String(state.boardId) === String(boardId)) {
+        syncBoardHeader?.();
+      }
+
+      renderBoards();
+      renderAll();
+      closeOverlay();
+    } catch (err) {
+      console.error(err);
+      alert("보드명 변경에 실패했어.");
+    }
+  });
+
+  input?.focus();
+  input?.setSelectionRange(input.value.length, input.value.length);
+
+  input?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveBtn?.click();
+    }
+  });
 }
 
 function syncBoardAddButton() {
@@ -2377,6 +2519,12 @@ async function reloadCurrentBoardMemos() {
   try {
     const memos = await fetchMemosByBoard(state.boardId);
     applyMemos(memos);
+
+    const currentSpace = getCurrentSpace();
+    if (currentSpace && state.spaceId) {
+      const boards = await fetchBoardsBySpace(state.spaceId);
+      currentSpace.boards = Array.isArray(boards) ? boards : [];
+    }
   } catch (err) {
     console.error("현재 보드 메모 다시 불러오기 실패:", err);
     state.data.memos = [];
@@ -2533,8 +2681,6 @@ async function uploadFiles(files) { //파일 업로드 함수
 // renderAll
 // =========================
 function renderAll() {
-  syncBoardAddButton();
-
   if (!hasAnySpace()) {
     showOnboarding(true);
     return;
@@ -2552,15 +2698,14 @@ function renderAll() {
   }
 
   syncSpaceLabel();
-  renderBoards();
+  syncBoardAddButton();
   syncBoardHeader();
+  syncBoardSummary();
+  renderBoards();
   renderBoard();
   applyBoardCols();
 
   const space = getCurrentSpace();
-  if (el.memberCount) {
-    el.memberCount.textContent = String((space?.members ?? []).length);
-  }
 }
 
 // =========================

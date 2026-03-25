@@ -1,229 +1,82 @@
 <!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width,initial-scale=1" name="viewport"/>
-    <title>stick</title>
-    <link href="css/styles.css" rel="stylesheet"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick | invite</title>
+
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/index.css" />
 </head>
 <body>
-<div class="app">
 
-    <div class="layout">
-        <!-- LEFT SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sideHead">
-                <div class="sideBrand">
-                    <img alt="stick" class="stickLogo" src="img/stick.svg">
-                </div>
-                <button aria-label="사이드바 토글" class="iconBtn sideToggle" id="toggleSidebar" type="button">
-                    <img alt="" class="sideIcon" src="img/sidebar-icon.svg">
-                </button>
-            </div>
-            <div class="sideInfo">
-                <div class="sideControls">
-                    <label class="pill pillDrop" id="spacePill">
-                        <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
-                                type="button">
-                            <span id="spaceLabel"></span>
-                        </button>
+<div class="home">
+    <main class="homeCard" role="main">
+        <header class="homeHead">
+            <h1 class="homeTitle"><img alt="stick" class="stickLogo" src="img/stick.svg"></h1>
+        </header>
 
-                        <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
-                        <select hidden id="spaceSelect">불러오는 중...</select>
-                    </label>
+        <section class="homeBody">
 
-                    <span aria-hidden="true" class="segDiv"></span>
-                </div>
-            </div>
-            <div id="boardList" class="boardList"></div>
-            <div class="sideSectionHead">
-                <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">
-                    보드 추가
-                </button>
-            </div>
-            <div class="sideFooter">
-                <button aria-label="내 계정" class="userCard" id="meBtn" type="button">
-                    <img alt="profile" class="avatar" id="meAvatar" src="img/user-icon.svg">
+            <input
+                    id="inviteCode"
+                    class="inviteInput input"
+                    type="text"
+                    placeholder="초대코드"
+                    autocomplete="off"
+            />
+        </section>
 
-                    <div class="userMeta">
-                        <div class="userName" id="meName"></div>
-                    </div>
-                </button>
-            </div>
+        <section class="homeActions">
+            <button id="enterBtn" class="btn primary" type="button">
+                입장하기
+            </button>
+        </section>
 
-        </aside>
+        <footer class="homeFoot">
+            <p class="homeHint">
+                이미 계정이 있으신가요?
+                <button class="btn linkBtn" data-login-open>로그인</button>
+            </p>
+        </footer>
 
-        <div aria-orientation="vertical" class="splitter" id="splitter" role="separator" tabindex="0"></div>
-
-        <!-- MAIN -->
-        <main class="main">
-            <div class="boardTop">
-                <div class="boardHero">
-                    <div class="boardTitleLine">
-                        <div class="boardName" id="boardName">null</div>
-                        <div class="boardDesc" id="boardDesc" contenteditable="false"></div>
-                    </div>
-
-                    <div class="boardSummary" id="boardSummary">
-                        <span class="sum-item">메모 <b id="memoCount">0</b>개</span>
-                        <span class="sum-divider">•</span>
-                        <span class="sum-item"><b id="memberCount">0</b>명 참여</span>
-                        <span class="sum-divider">•</span>
-                        <span class="sum-item">마지막 수정 <span id="lastModified">00/00 00:00</span></span>
-                    </div>
-                </div>
-
-                <div class="topRight">
-                    <!-- 멤버 패널 토글 버튼 (오른쪽 패널 열기용) -->
-                    <button aria-label="멤버 패널" class="iconBtn" id="membersToggleBtn" type="button">
-                        <img alt="" class="memberIcon" src="img/member-icon.svg">
-                    </button>
-
-                    <div class="search">
-                        <div class="searchWrap" id="searchWrap">
-                            <input autocomplete="off" id="searchInput" placeholder="이 보드에서 검색..."/>
-                            <button aria-label="검색 지우기" class="searchClear" id="searchClear" type="button">✕</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="boardWrap" id="boardWrap">
-                <div class="board" id="board"></div>
-
-                <!-- empty state (빈 보드일 때만 중앙에: 문구 위 + 입력바 아래) -->
-                <div class="emptyState" hidden id="emptyState">
-                    <div class="emptyStack">
-                        <div class="emptyText">새 메모를 시작해보자</div>
-
-                        <div class="composer is-empty" id="composer">
-                            <div class="composerRow">
-                                <div class="composerBar">
-                                    <div class="composerLeft">
-                                        <button aria-label="추가" class="composerPlus" id="composerPlus" type="button">+
-                                        </button>
-                                        <input accept="image/*" hidden id="composerFile" multiple type="file"/>
-
-                                        <textarea class="quickInput" id="quickInput"
-                                                  placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
-
-                                        <div class="color-pick" id="quickColors">
-                                            <div class="swatch white selected" data-color="cream" title="화이트"></div>
-                                            <div class="swatch blue" data-color="blue" title="블루"></div>
-                                            <div class="swatch green" data-color="sage" title="그린"></div>
-                                            <div class="swatch coral" data-color="coral" title="오렌지"></div>
-                                            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ✅ 메모가 1개 이상일 때만 쓸 하단 composer -->
-            <div class="dock" hidden id="dock">
-                <div class="composerRow">
-                    <div class="composerBar">
-                        <div class="composerLeft">
-                            <button aria-label="추가" class="composerPlus" id="composerPlusDock" type="button">+</button>
-                            <input accept="image/*" hidden id="composerFileDock" multiple type="file"/>
-                            <textarea class="quickInput" id="quickInputDock"
-                                      placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
-
-                            <div aria-label="색상 선택" class="color-pick" id="newColors">
-                                <div class="swatch white selected" data-color="cream" title="화이트"></div>
-                                <div class="swatch blue" data-color="blue" title="블루"></div>
-                                <div class="swatch green" data-color="sage" title="그린"></div>
-                                <div class="swatch coral" data-color="coral" title="오렌지"></div>
-                                <div class="swatch purple" data-color="lavender" title="퍼플"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <aside aria-label="멤버 목록" class="memberPanel" id="memberPanel">
-                <div class="memberHead">
-                    <div class="memberTitle" id="memberTitle">멤버</div>
-                    <button aria-label="닫기" class="iconBtn memberClose" id="memberClose" type="button">✕</button>
-                </div>
-
-                <div class="memberPanelBody" id="memberPanelBody"></div>
-            </aside>
-
-        </main>
-    </div>
+    </main>
 </div>
 
-<div class="modalBackdrop hidden" id="spaceOnboardingModal">
-    <div class="spaceOnboardingModal compact">
-        <h2 class="spaceOnboardingBrand">기존 스페이스에 입장하기</h2>
+<div class="overlay home-overlay hidden" aria-hidden="true" data-login-overlay>
+    <div class="dialog loginDialog" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="dialogBody">
+            <div id="loginTitle" class="dialogTitle">로그인</div>
+            <button class="dialogClose" type="button" aria-label="닫기" data-login-close>✕</button>
+            <div class="loginForm">
+                <label class="loginLabel">
+                    아이디
+                    <input id="loginId" class="loginInput input" type="text" autocomplete="username" />
+                </label>
 
-        <input
-                id="inviteCodeInput"
-                class="spaceJoinInput main"
-                type="text"
-                placeholder="초대코드"
-        />
+                <label class="loginLabel">
+                    비밀번호
+                    <input id="loginPw" class="loginInput input" type="password" autocomplete="current-password" />
+                </label>
 
-        <button id="joinByCodeBtn" class="spaceJoinBtn" type="button">
-            입장하기
-        </button>
-
-        <button id="showCreateSpaceBtn" class="spaceSubAction" type="button">
-            새 스페이스 만들기
-        </button>
-    </div>
-</div>
-
-<div class="modalBackdrop hidden" id="createSpaceModal">
-    <div class="spaceOnboardingModal compact">
-
-        <h2 class="spaceOnboardingBrand text">새 스페이스 만들기</h2>
-
-        <input
-                id="createSpaceNameInput"
-                class="spaceJoinInput main"
-                type="text"
-                placeholder="스페이스 이름"
-        />
-
-        <button id="submitCreateSpaceBtn" class="spaceJoinBtn" type="button">
-            생성하기
-        </button>
-
-        <button id="backToJoinModalBtn" class="spaceSubAction" type="button">
-            초대코드로 입장하기
-        </button>
-    </div>
-</div>
-
-
-<div aria-hidden="true" class="overlay hidden noDim" id="overlay">
-    <div class="dialog sidePanel" id="sidePanel">
-        <div class="dialogHead">
-            <div class="dialogTitle" id="panelTitle"></div>
-            <button aria-label="닫기" class="dialogClose" id="panelClose" type="button">✕</button>
+                <div class="loginActions">
+                    <button id="loginSubmitBtn" class="btn primary" type="button">로그인</button>
+                    <button id="discordLoginBtn" class="btn" type="button">Discord로 로그인</button>
+                </div>
+                <div class="loginMeta">
+                    <span>아직 계정이 없으신가요?</span>
+                    <a href="html/signup.html" class="loginLink">회원가입</a>
+                </div>
+            </div>
         </div>
-        <div class="dialogBody" id="panelBody"></div>
+
     </div>
-    <div id="modalRoot"></div>
-</div>
-
-<div class="spaceContextMenu hidden" id="spaceContextMenu">
-    <button type="button" class="spaceContextItem" data-act="settings">스페이스 설정</button>
-    <button type="button" class="spaceContextItem danger" data-act="leave">나가기</button>
-</div>
-
-<div id="boardContextMenu" class="boardContextMenu hidden">
-    <button type="button" class="boardContextItem danger" data-act="delete">
-        보드 삭제
-    </button>
 </div>
 
 
-<script src="js/app.js"></script>
+
+<script src="js/index.js"></script>
+
+
 </body>
 </html>

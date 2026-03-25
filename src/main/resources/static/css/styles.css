@@ -81,6 +81,7 @@ body{
 }
 
 .sidebar{
+  overflow: hidden;
   background: #ECEAE6;
   padding: 12px;
   min-height: 0;
@@ -96,13 +97,30 @@ body{
   margin-bottom: 10px;
 }
 
+.sideSectionHead{
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 10px;
+  margin-bottom: 10px;
+}
+
+.sideMiddle{
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .boardList{
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 4px;
 }
 
@@ -2087,13 +2105,6 @@ mark{
 
 .addBoardBtn:hover{
   background: #f3f4f6;
-}
-
-.sideSectionHead{
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-bottom: 10px;
 }
 
 
