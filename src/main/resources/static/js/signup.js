@@ -1,5 +1,3 @@
-// signup.js
-
 const qs = (sel, root = document) => root.querySelector(sel);
 
 function setAriaHidden(el, hidden) {
@@ -11,23 +9,24 @@ function isHidden(el) {
 }
 
 function initSignup() {
-  // ---- DOM cache ----
-  const agreeTerms   = qs("#agreeTerms");
-  const signupBtn    = qs("#signupBtn");
+  const signupId = qs("#signupId");
+  const signupPw = qs("#signupPw");
+  const signupPw2 = qs("#signupPw2");
+  const signupNick = qs("#signupNick");
+  const agreeTerms = qs("#agreeTerms");
+  const signupBtn = qs("#signupBtn");
 
-  const openTerms    = qs("#openTerms");
-  const openPrivacy  = qs("#openPrivacy");
+  const openTerms = qs("#openTerms");
+  const openPrivacy = qs("#openPrivacy");
 
-  const overlay      = qs("#overlay");
-  const policyTitle  = qs("#policyTitle");
-  const policyContent= qs("#policyContent");
-  const policyClose  = qs("#policyClose");
-  const policyOk     = qs("#policyOk");
+  const overlay = qs("#overlay");
+  const policyTitle = qs("#policyTitle");
+  const policyContent = qs("#policyContent");
+  const policyClose = qs("#policyClose");
+  const policyOk = qs("#policyOk");
 
-  if (!agreeTerms || !signupBtn) return; // 페이지 구조가 다르면 조용히 종료
-  // overlay는 "약관 모달 없는 버전"일 수도 있으니 필수로 안 잡음
+  if (!agreeTerms || !signupBtn) return;
 
-  // ---- modal content ----
   const TERMS_HTML = `
     <p><b>이용약관(요약)</b></p>
     <ul>
@@ -46,45 +45,100 @@ function initSignup() {
     </ul>
   `;
 
-  // ---- state sync ----
   function syncSignupEnabled() {
     signupBtn.disabled = !agreeTerms.checked;
   }
 
-  // ---- modal control ----
   let lastFocusEl = null;
 
   function openModal(title, html) {
     if (!overlay || !policyTitle || !policyContent) return;
-
     lastFocusEl = document.activeElement;
-
     policyTitle.textContent = title;
     policyContent.innerHTML = html;
-
     overlay.classList.remove("hidden");
     setAriaHidden(overlay, false);
-
-    // 닫기 버튼으로 포커스 이동 (접근성 + 키보드 사용성)
     policyClose?.focus();
   }
 
   function closeModal() {
     if (!overlay) return;
-
     overlay.classList.add("hidden");
     setAriaHidden(overlay, true);
-
-    // 모달 열기 전 포커스로 복귀
     if (lastFocusEl && typeof lastFocusEl.focus === "function") {
       lastFocusEl.focus();
     }
     lastFocusEl = null;
   }
 
-  // ---- handlers ----
+  async function onSignup() {
+    const loginId = signupId?.value.trim();
+    const password = signupPw?.value.trim();
+    const passwordConfirm = signupPw2?.value.trim();
+    const nickname = signupNick?.value.trim();
+    const ageConfirmed = !!agreeTerms?.checked;
+
+    if (!loginId) {
+      alert("아이디를 입력해.");
+      signupId?.focus();
+      return;
+    }
+
+    if (!password) {
+      alert("비밀번호를 입력해.");
+      signupPw?.focus();
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      alert("비밀번호 확인이 일치하지 않아.");
+      signupPw2?.focus();
+      return;
+    }
+
+    if (!nickname) {
+      alert("닉네임을 입력해.");
+      signupNick?.focus();
+      return;
+    }
+
+    if (!ageConfirmed) {
+      alert("만 13세 이상 및 약관 동의가 필요해.");
+      return;
+    }
+
+    signupBtn.disabled = true;
+
+    try {
+      const response = await fetch("/users/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          loginId,
+          password,
+          nickname,
+          ageConfirmed
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "회원가입 실패");
+      }
+
+      alert("회원가입 완료");
+      window.location.href = "../index.html";
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "회원가입 중 오류가 발생했어.");
+    } finally {
+      syncSignupEnabled();
+    }
+  }
+
   function onOverlayPointerDown(e) {
-    // overlay 바깥 클릭 닫기 (dialog 내부 클릭은 무시)
     const dialog = overlay?.querySelector(".dialog");
     if (dialog && !dialog.contains(e.target)) closeModal();
   }
@@ -95,8 +149,9 @@ function initSignup() {
     closeModal();
   }
 
-  // ---- bind events ----
   agreeTerms.addEventListener("change", syncSignupEnabled);
+  signupBtn.addEventListener("click", onSignup);
+
   syncSignupEnabled();
 
   openTerms?.addEventListener("click", () => openModal("이용약관", TERMS_HTML));

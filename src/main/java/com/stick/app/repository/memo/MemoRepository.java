@@ -1,4 +1,4 @@
-package com.stick.app.repository;
+package com.stick.app.repository.memo;
 
 import com.stick.app.domain.memo.Memo;
 import org.springframework.data.jpa.repository.JpaRepository;

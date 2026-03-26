@@ -1,4 +1,4 @@
-package com.stick.app.repository;
+package com.stick.app.repository.board;
 
 import com.stick.app.domain.board.Board;
 import org.springframework.data.jpa.repository.JpaRepository;

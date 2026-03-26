@@ -1,4 +1,4 @@
-package com.stick.app.domain.uploadeFile;
+package com.stick.app.domain.uploadFile;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.stick.app.domain.memo.Memo;

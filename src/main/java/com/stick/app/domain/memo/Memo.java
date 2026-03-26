@@ -1,8 +1,8 @@
 package com.stick.app.domain.memo;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.stick.app.domain.uploadFile.UploadFile;
 import com.stick.app.domain.board.Board;
-import com.stick.app.domain.uploadeFile.UploadFile;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;

@@ -2,12 +2,12 @@ package com.stick.app.service;
 
 import com.stick.app.domain.board.Board;
 import com.stick.app.domain.memo.Memo;
-import com.stick.app.domain.uploadeFile.UploadFile;
+import com.stick.app.domain.uploadFile.UploadFile;
 import com.stick.app.dto.MemoCreateRequest;
 import com.stick.app.dto.MemoResponse;
-import com.stick.app.repository.BoardRepository;
-import com.stick.app.repository.MemoRepository;
-import com.stick.app.repository.UploadFileRepository;
+import com.stick.app.repository.board.BoardRepository;
+import com.stick.app.repository.memo.MemoRepository;
+import com.stick.app.repository.uploadFile.UploadFileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

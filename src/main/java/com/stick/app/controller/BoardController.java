@@ -6,6 +6,7 @@ import com.stick.app.dto.BoardCreateRequest;
 import com.stick.app.dto.BoardResponse;
 import com.stick.app.dto.BoardUpdateRequest;
 import com.stick.app.service.BoardService;
+import com.stick.app.service.SpaceMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping("/boards")
 public class BoardController {
     private final BoardService boardService;
+    private final SpaceMemberService spaceMemberService;
 
     @PostMapping
     public Board createBoard(@RequestBody BoardCreateRequest request) {
@@ -27,7 +29,8 @@ public class BoardController {
     }
 
     @GetMapping("/space/{spaceId}")
-    public List<BoardResponse> getBoardsBySpaceId(@PathVariable Long spaceId) {
+    public List<BoardResponse> getBoardsBySpaceId(@PathVariable Long spaceId,
+                                                  @RequestParam Long userId) {
         return boardService.getBoardsBySpaceId(spaceId);
     }
 

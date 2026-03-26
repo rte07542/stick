@@ -1,7 +1,12 @@
 package com.stick.app.service;
 
 import com.stick.app.domain.space.Space;
-import com.stick.app.repository.SpaceRepository;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.repository.space.SpaceMemberRepository;
+import com.stick.app.repository.space.SpaceRepository;
+import com.stick.user.domain.User;
+import com.stick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,21 +18,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpaceService {
 
+
     private final SpaceRepository spaceRepository; //레포지토리 연결
     // private final = 생성자 주입 + 객체 변경 방지
     /*
         private : 이 변수는 이 클래스 안에서만 사용
         final : 한번 값이 들어가면 다시 바꿀 수 없음
     */
+    private final UserService userService;
+    private final SpaceMemberService spaceMemberService;
+    private final SpaceMemberRepository spaceMemberRepository;
 
     public Space createSpace(String name, Long ownerId, String description) {
+        User creator = userService.getUserById(ownerId);
+
         Space space = Space.builder()
                 .name(name)
-                .ownerId(ownerId)
                 .description(description)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
+
+        Space savedSpace = spaceRepository.save(space);
+
+        spaceMemberService.addMember(savedSpace.getId(), creator.getId(), SpaceRole.OWNER);
 
         return spaceRepository.save(space);
     }
@@ -58,4 +70,11 @@ public class SpaceService {
         spaceRepository.delete(space);
     }
     //전달 받은 id의 Space를 db에서 지우는 함수
+
+    public List<Space> getSpacesByUserId(Long userId) {
+        List<SpaceMember> members = spaceMemberRepository.findByUserId (userId);
+        return members.stream()
+                .map(SpaceMember::getSpace)
+                .toList();
+    }
 }

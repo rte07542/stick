@@ -1,8 +1,8 @@
 package com.stick.app.service;
 
-import com.stick.app.domain.uploadeFile.UploadFile;
+import com.stick.app.domain.uploadFile.UploadFile;
 import com.stick.app.dto.UploadFileResponse;
-import com.stick.app.repository.UploadFileRepository;
+import com.stick.app.repository.uploadFile.UploadFileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

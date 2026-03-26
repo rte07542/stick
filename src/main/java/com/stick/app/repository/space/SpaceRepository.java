@@ -1,4 +1,4 @@
-package com.stick.app.repository;
+package com.stick.app.repository.space;
 
 import com.stick.app.domain.space.Space;
 import org.springframework.data.jpa.repository.JpaRepository;

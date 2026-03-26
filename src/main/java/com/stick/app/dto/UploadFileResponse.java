@@ -1,6 +1,6 @@
 package com.stick.app.dto;
 
-import com.stick.app.domain.uploadeFile.UploadFile;
+import com.stick.app.domain.uploadFile.UploadFile;
 import lombok.Builder;
 import lombok.Getter;
 

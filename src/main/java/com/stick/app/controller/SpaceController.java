@@ -22,8 +22,8 @@ public class SpaceController {
     }
 
     @GetMapping
-    public List<Space> getAllSpaces() {
-        return spaceService.getAllSpaces();
+    public List<Space> getMySpace(@RequestParam Long userId){
+        return spaceService.getSpacesByUserId(userId);
     }
 
     @GetMapping("/{id}")

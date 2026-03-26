@@ -20,14 +20,32 @@ public class Space {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private Long ownerId; //스페이스 생성자
-    private String description; //스페이스 설명
-    private LocalDateTime createdAt; //생성 시간
+    @Column(nullable = false, length = 100)
+    private String name; //스페이스 생성자
+
+    @Column(length = 500)
+    private String description;//스페이스 설명
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;//생성 시간
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt; //수정 시간
 
     @OneToMany(mappedBy = "space", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
     private List<Board> boards = new ArrayList<>();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
