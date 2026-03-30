@@ -10,8 +10,8 @@ import com.stick.app.repository.memo.MemoRepository;
 import com.stick.app.repository.uploadFile.UploadFileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,18 +22,17 @@ public class MemoService {
     private final MemoRepository memoRepository;
     private final UploadFileRepository uploadFileRepository;
 
+    @Transactional
     public MemoResponse createMemo(MemoCreateRequest request) {
         Board board = boardRepository.findById(request.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 보드."));
-        List<UploadFile> attachments = new ArrayList<>();
 
         Memo memo = Memo.builder()
                 .content(request.getContent())
                 .board(board)
                 .authorId(request.getAuthorId())
                 .color(request.getColor())
-                .createdAt(LocalDateTime.now())
-                .attachments(attachments)
+                .attachments(new ArrayList<>())
                 .build();
 
         Memo saveMemo = memoRepository.save(memo);
@@ -52,21 +51,22 @@ public class MemoService {
     public List<Memo> getMemosByBoardId(Long boardId){
         return memoRepository.findByBoardId(boardId);
     }
+
     public Memo getMemoById(Long id){
         return memoRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 Memo가 없음. Id="+id));
     }
 
+    @Transactional
     public Memo updateMemo(Long id, String content, String color){
         Memo memo = memoRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 Memo가 없음. id="+id));
         memo.setContent(content);
         memo.setColor(color);
-        memo.setUpdatedAt(LocalDateTime.now());
-
         return memoRepository.save(memo);
     }
 
+    @Transactional
     public void deleteMemo(Long id){
         Memo memo = memoRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 memo가 없음 id="+id));

@@ -20,6 +20,7 @@ import java.util.UUID;
 public class UploadFileService {
     private final UploadFileRepository uploadFileRepository;
     private final String uploadDir = System.getProperty("user.dir")+"/uploads";
+
     public List<UploadFileResponse> uploadFiles(List<MultipartFile> files) {
         return files.stream()
                 .map(this::uploadSingleFile)
@@ -47,12 +48,9 @@ public class UploadFileService {
                     .url("/uploads/" + storedName)
                     .contentType(file.getContentType())
                     .size(file.getSize())
-                    .createdAt(LocalDateTime.now())
                     .build();
 
-            UploadFile saved = uploadFileRepository.save(uploadFile);
-
-            return UploadFileResponse.from(saved);
+            return UploadFileResponse.from(uploadFileRepository.save(uploadFile));
 
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패",e);

@@ -1,0 +1,412 @@
+﻿=== C:\dev\stick\src\main\resources\static\index.html ===
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick | invite</title>
+
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
+
+<div class="home">
+    <main class="homeCard" role="main">
+        <header class="homeHead">
+            <h1 class="homeTitle"><img alt="stick" class="stickLogo" src="img/stick.svg"></h1>
+        </header>
+
+        <section class="homeBody">
+
+            <input
+                    id="inviteCode"
+                    class="inviteInput input"
+                    type="text"
+                    placeholder="珥덈?肄붾뱶"
+                    autocomplete="off"
+            />
+        </section>
+
+        <section class="homeActions">
+            <button id="enterBtn" class="btn primary" type="button">
+                ?낆옣?섍린
+            </button>
+        </section>
+
+        <footer class="homeFoot">
+            <p class="homeHint">
+                ?대? 怨꾩젙???덉쑝?좉???
+                <button class="btn linkBtn" data-login-open>濡쒓렇??/button>
+            </p>
+        </footer>
+
+    </main>
+</div>
+
+<div class="overlay home-overlay hidden" aria-hidden="true" data-login-overlay>
+    <div class="dialog loginDialog" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="dialogBody">
+            <div id="loginTitle" class="dialogTitle">濡쒓렇??/div>
+            <button class="dialogClose" type="button" aria-label="?リ린" data-login-close>??/button>
+            <div class="loginForm">
+                <label class="loginLabel">
+                    ?꾩씠??
+                    <input id="loginId" class="loginInput input" type="text" autocomplete="username" />
+                </label>
+
+                <label class="loginLabel">
+                    鍮꾨?踰덊샇
+                    <input id="loginPw" class="loginInput input" type="password" autocomplete="current-password" />
+                </label>
+
+                <div class="loginActions">
+                    <button id="loginSubmitBtn" class="btn primary" type="button">濡쒓렇??/button>
+                    <button id="discordLoginBtn" class="btn" type="button">Discord濡?濡쒓렇??/button>
+                </div>
+                <div class="loginMeta">
+                    <span>?꾩쭅 怨꾩젙???놁쑝?좉???</span>
+                    <a href="html/signup.html" class="loginLink">?뚯썝媛??/a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script src="js/index.js"></script>
+
+
+</body>
+</html>
+
+=== C:\dev\stick\src\main\resources\static\html\app.html ===
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1" name="viewport"/>
+    <title>stick</title>
+    <link href="../css/styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="app">
+
+    <div class="layout">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sideHead">
+                <div class="sideBrand">
+                    <img alt="stick" class="stickLogo" src="../img/stick.svg">
+                </div>
+                <button aria-label="?ъ씠?쒕컮 ?좉?" class="iconBtn sideToggle" id="toggleSidebar" type="button">
+                    <img alt="" class="sideIcon" src="../img/sidebar-icon.svg">
+                </button>
+            </div>
+            <div class="sideInfo">
+                <div class="sideControls">
+                    <label class="pill pillDrop" id="spacePill">
+                        <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
+                                type="button">
+                            <span id="spaceLabel"></span>
+                        </button>
+
+                        <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
+                        <select hidden id="spaceSelect">遺덈윭?ㅻ뒗 以?..</select>
+                    </label>
+
+                    <span aria-hidden="true" class="segDiv"></span>
+                </div>
+            </div>
+            <div class="sideMiddle">
+                <div id="boardList" class="boardList"></div>
+                <div class="sideSectionHead">
+                    <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="蹂대뱶 異붽?">
+                        蹂대뱶 異붽?
+                    </button>
+                </div>
+            </div>
+            <div class="sideFooter">
+                <button aria-label="??怨꾩젙" class="userCard" id="meBtn" type="button">
+                    <img alt="profile" class="avatar" id="meAvatar" src="../img/user-icon.svg">
+
+                    <div class="userMeta">
+                        <div class="userName" id="meName"></div>
+                    </div>
+                </button>
+            </div>
+
+        </aside>
+
+        <div aria-orientation="vertical" class="splitter" id="splitter" role="separator" tabindex="0"></div>
+
+        <!-- MAIN -->
+        <main class="main">
+            <div class="boardTop">
+                <div class="boardHero">
+                    <div class="boardTitleLine">
+                        <div class="boardName" id="boardName">null</div>
+                        <div class="boardDesc" id="boardDesc" contenteditable="false"></div>
+                    </div>
+
+                    <div class="boardSummary" id="boardSummary">
+                        <span class="sum-item">硫붾え <b id="memoCount">0</b>媛?/span>
+                        <span class="sum-divider">??/span>
+                        <span class="sum-item">留덉?留??섏젙 <span id="lastModified">00/00 00:00</span></span>
+                    </div>
+                </div>
+
+                <div class="topRight">
+                    <!-- 硫ㅻ쾭 ?⑤꼸 ?좉? 踰꾪듉 (?ㅻⅨ履??⑤꼸 ?닿린?? -->
+                    <button aria-label="硫ㅻ쾭 ?⑤꼸" class="iconBtn" id="membersToggleBtn" type="button">
+                        <img alt="" class="memberIcon" src="../img/member-icon.svg">
+                    </button>
+
+                    <div class="search">
+                        <div class="searchWrap" id="searchWrap">
+                            <input autocomplete="off" id="searchInput" placeholder="??蹂대뱶?먯꽌 寃??.."/>
+                            <button aria-label="寃??吏?곌린" class="searchClear" id="searchClear" type="button">??/button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="boardWrap" id="boardWrap">
+                <div class="board" id="board"></div>
+
+                <!-- empty state (鍮?蹂대뱶???뚮쭔 以묒븰?? 臾멸뎄 ??+ ?낅젰諛??꾨옒) -->
+                <div class="emptyState" hidden id="emptyState">
+                    <div class="emptyStack">
+                        <div class="emptyText">??硫붾え瑜??쒖옉?대낫??/div>
+
+                        <div class="composer is-empty" id="composer">
+                            <div class="composerRow">
+                                <div class="composerBar">
+                                    <div class="composerLeft">
+                                        <button aria-label="異붽?" class="composerPlus" id="composerPlus" type="button">+
+                                        </button>
+                                        <input accept="image/*" hidden id="composerFile" multiple type="file"/>
+
+                                        <textarea class="quickInput" id="quickInput"
+                                                  placeholder="梨꾪똿泥섎읆 鍮좊Ⅴ寃?硫붾え ?④린湲?></textarea>
+
+                                        <div class="color-pick" id="quickColors">
+                                            <div class="swatch white selected" data-color="cream" title="?붿씠??></div>
+                                            <div class="swatch blue" data-color="blue" title="釉붾（"></div>
+                                            <div class="swatch green" data-color="sage" title="洹몃┛"></div>
+                                            <div class="swatch coral" data-color="coral" title="?ㅻ젋吏"></div>
+                                            <div class="swatch purple" data-color="lavender" title="?쇳뵆"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ??硫붾え媛 1媛??댁긽???뚮쭔 ???섎떒 composer -->
+            <div class="dock" hidden id="dock">
+                <div class="composerRow">
+                    <div class="composerBar">
+                        <div class="composerLeft">
+                            <button aria-label="異붽?" class="composerPlus" id="composerPlusDock" type="button">+</button>
+                            <input accept="image/*" hidden id="composerFileDock" multiple type="file"/>
+                            <textarea class="quickInput" id="quickInputDock"
+                                      placeholder="梨꾪똿泥섎읆 鍮좊Ⅴ寃?硫붾え ?④린湲?></textarea>
+
+                            <div aria-label="?됱긽 ?좏깮" class="color-pick" id="newColors">
+                                <div class="swatch white selected" data-color="cream" title="?붿씠??></div>
+                                <div class="swatch blue" data-color="blue" title="釉붾（"></div>
+                                <div class="swatch green" data-color="sage" title="洹몃┛"></div>
+                                <div class="swatch coral" data-color="coral" title="?ㅻ젋吏"></div>
+                                <div class="swatch purple" data-color="lavender" title="?쇳뵆"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside aria-label="硫ㅻ쾭 紐⑸줉" class="memberPanel" id="memberPanel">
+                <div class="memberHead">
+                    <div class="memberTitle" id="memberTitle">硫ㅻ쾭</div>
+                    <button aria-label="?リ린" class="iconBtn memberClose" id="memberClose" type="button">??/button>
+                </div>
+
+                <div class="memberPanelBody" id="memberPanelBody"></div>
+            </aside>
+
+        </main>
+    </div>
+</div>
+
+<div class="modalBackdrop hidden" id="spaceOnboardingModal">
+    <div class="spaceOnboardingModal compact">
+        <h2 class="spaceOnboardingBrand">湲곗〈 ?ㅽ럹?댁뒪???낆옣?섍린</h2>
+
+        <input
+                id="inviteCodeInput"
+                class="spaceJoinInput main"
+                type="text"
+                placeholder="珥덈?肄붾뱶"
+        />
+
+        <button id="joinByCodeBtn" class="spaceJoinBtn" type="button">
+            ?낆옣?섍린
+        </button>
+
+        <button id="showCreateSpaceBtn" class="spaceSubAction" type="button">
+            ???ㅽ럹?댁뒪 留뚮뱾湲?
+        </button>
+    </div>
+</div>
+
+<div class="modalBackdrop hidden" id="createSpaceModal">
+    <div class="spaceOnboardingModal compact">
+
+        <h2 class="spaceOnboardingBrand text">???ㅽ럹?댁뒪 留뚮뱾湲?/h2>
+
+        <input
+                id="createSpaceNameInput"
+                class="spaceJoinInput main"
+                type="text"
+                placeholder="?ㅽ럹?댁뒪 ?대쫫"
+        />
+
+        <button id="submitCreateSpaceBtn" class="spaceJoinBtn" type="button">
+            ?앹꽦?섍린
+        </button>
+
+        <button id="backToJoinModalBtn" class="spaceSubAction" type="button">
+            珥덈?肄붾뱶濡??낆옣?섍린
+        </button>
+    </div>
+</div>
+
+
+<div aria-hidden="true" class="overlay hidden noDim" id="overlay">
+    <div class="dialog sidePanel" id="sidePanel">
+        <div class="dialogHead">
+            <div class="dialogTitle" id="panelTitle"></div>
+            <button aria-label="?リ린" class="dialogClose" id="panelClose" type="button">??/button>
+        </div>
+        <div class="dialogBody" id="panelBody"></div>
+    </div>
+    <div id="modalRoot"></div>
+</div>
+
+<div class="spaceContextMenu hidden" id="spaceContextMenu">
+    <button type="button" class="spaceContextItem" data-act="settings">?ㅽ럹?댁뒪 ?ㅼ젙</button>
+    <button type="button" class="spaceContextItem danger" data-act="leave">?섍?湲?/button>
+</div>
+
+<div id="boardContextMenu" class="boardContextMenu hidden">
+    <button class="boardContextItem" type="button" data-act="rename">蹂대뱶紐?蹂寃?/button>
+    <button type="button" class="boardContextItem danger" data-act="delete">蹂대뱶 ??젣</button>
+</div>
+
+
+<script src="../js/app.js"></script>
+</body>
+</html>
+
+=== C:\dev\stick\src\main\resources\static\html\signup.html ===
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>stick | signup</title>
+
+    <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/signup.css" />
+</head>
+<body>
+
+<div class="signup">
+    <main class="signupCard" role="main">
+        <header class="signupHead">
+            <h1 class="signupTitle"><img alt="stick" class="stickLogo" src="../img/stick.svg"></h1>
+            <p class="signupSub">?뚯썝媛??/p>
+        </header>
+
+        <section class="signupBody">
+            <label class="signupLabel" for="signupId">
+                ?꾩씠??
+                <input id="signupId" class="signupInput" type="text" autocomplete="username" />
+            </label>
+
+            <label class="signupLabel" for="signupPw">
+                鍮꾨?踰덊샇
+                <input id="signupPw" class="signupInput" type="password" autocomplete="new-password" />
+            </label>
+
+            <label class="signupLabel" for="signupPw2">
+                鍮꾨?踰덊샇 ?뺤씤
+                <input id="signupPw2" class="signupInput" type="password" autocomplete="new-password" />
+            </label>
+
+            <label class="signupLabel" for="signupNick">
+                ?됰꽕??
+                <input id="signupNick" class="signupInput" type="text" autocomplete="nickname" />
+            </label>
+        </section>
+
+        <section class="signupAgreement">
+            <label class="agreeCheck">
+                <input type="checkbox" id="agreeTerms" />
+                <span class="agreeText">
+      蹂몄씤? 留?13???댁긽?대ŉ,
+      <button type="button" class="inlineLink" id="openTerms">?댁슜?쎄?</button> 諛?
+      <button type="button" class="inlineLink" id="openPrivacy">媛쒖씤?뺣낫 泥섎━諛⑹묠</button>???숈쓽?⑸땲??
+    </span>
+            </label>
+
+            <p class="agreeDesc">
+                蹂??쒕퉬?ㅻ뒗 留?13??誘몃쭔 ?꾨룞????곸쑝濡??섏? ?딆뒿?덈떎.
+                ?곕졊 ?붽굔??異⑹”?섏? ?딅뒗 怨꾩젙? ??젣?????덉뒿?덈떎.
+            </p>
+        </section>
+
+
+        <button id="signupBtn" class="btn primary" type="button" disabled>?뚯썝媛??/button>
+
+        </section>
+
+
+        <footer class="signupFoot">
+            <p class="signupHint">
+                ?대? 怨꾩젙???덈굹??
+                <a href="../index.html" class="signupLink">?뚯븘媛湲?/a>
+            </p>
+        </footer>
+    </main>
+</div>
+
+<div id="overlay" class="overlay hidden" aria-hidden="true">
+    <div class="modalRoot">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="policyTitle">
+            <div class="dialogHead">
+                <div id="policyTitle" class="dialogTitle">?쎄?</div>
+                <button id="policyClose" class="dialogClose" type="button" aria-label="?リ린">??/button>
+            </div>
+
+            <div class="dialogBody">
+                <div id="policyContent" class="policyContent">
+                    <!-- JS媛 ?댁슜 梨꾩? -->
+                </div>
+            </div>
+
+            <div class="dialogActions">
+                <button id="policyOk" class="btn primary" type="button">?뺤씤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/signup.js"></script>
+</body>
+</html>
+

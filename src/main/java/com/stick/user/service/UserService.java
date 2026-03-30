@@ -44,22 +44,6 @@ public class UserService {
         return user;
     }
 
-    public User createUser(String loginId, String password, String nickname) {
-        if(userRepository.existsByLoginId(loginId)){
-            throw new IllegalArgumentException("이미 존재하는 로그인 아이디");
-        }
-        if(userRepository.existsByNickname(nickname)) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임");
-        }
-
-        User user = User.builder()
-                .loginId(loginId)
-                .password(password)
-                .nickname(nickname)
-                .build();
-
-        return userRepository.save(user);
-    }
     public User getUserById(Long userId){
         return userRepository.findById(userId)
                 .orElseThrow(()->new IllegalArgumentException("없는 유저"));

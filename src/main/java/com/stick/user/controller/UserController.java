@@ -1,8 +1,8 @@
 package com.stick.user.controller;
 
-import com.stick.user.domain.User;
 import com.stick.user.dto.LoginRequest;
 import com.stick.user.dto.SignupRequest;
+import com.stick.user.dto.UserResponse;
 import com.stick.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,26 +14,26 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public User signup(@RequestBody SignupRequest request) {
-        return userService.signup(
+    public UserResponse signup(@RequestBody SignupRequest request) {
+        return UserResponse.from(userService.signup(
                 request.getLoginId(),
                 request.getPassword(),
                 request.getNickname(),
                 request.isAgeConfirmed()
-        );
+        ));
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest request) {
-        return userService.login(
+    public UserResponse login(@RequestBody LoginRequest request) {
+        return UserResponse.from(userService.login(
                 request.getLoginId(),
                 request.getPassword()
-        );
+        ));
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public UserResponse getUserById(@PathVariable Long id) {
+        return UserResponse.from(userService.getUserById(id));
     }
 
 

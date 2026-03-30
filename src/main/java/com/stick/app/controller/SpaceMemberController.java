@@ -1,8 +1,7 @@
 package com.stick.app.controller;
 
-import com.stick.app.domain.space.Space;
-import com.stick.app.domain.space.SpaceMember;
 import com.stick.app.dto.SpaceMemberCreateRequest;
+import com.stick.app.dto.SpaceMemberResponse;
 import com.stick.app.service.SpaceMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,20 +15,27 @@ public class SpaceMemberController {
     private final SpaceMemberService spaceMemberService;
 
     @PostMapping
-    public SpaceMember addMember(@PathVariable Long spaceId,
-                                 @RequestBody SpaceMemberCreateRequest request){
-        return spaceMemberService.addMember(spaceId, request.getUserId(), request.getRole());
+    public SpaceMemberResponse addMember(@PathVariable Long spaceId,
+                                         @RequestBody SpaceMemberCreateRequest request){
+        return SpaceMemberResponse.from(
+                spaceMemberService.addMember(spaceId, request.getUserId(), request.getRole())
+        );
     }
 
     @GetMapping
-    public List<SpaceMember> getMember(@PathVariable Long spaceId) {
-        return spaceMemberService.getMembersBySpaceId(spaceId);
+    public List<SpaceMemberResponse> getMember(@PathVariable Long spaceId) {
+        return spaceMemberService.getMembersBySpaceId(spaceId)
+                .stream()
+                .map(SpaceMemberResponse::from)
+                .toList();
     }
 
     @GetMapping("/{userId}")
-    public SpaceMember getMember(@PathVariable Long spaceId,
+    public SpaceMemberResponse getMember(@PathVariable Long spaceId,
                                  @PathVariable Long userId) {
-        return spaceMemberService.getSpaceMember(spaceId,userId);
+        return SpaceMemberResponse.from(
+                spaceMemberService.getSpaceMember(spaceId, userId)
+        );
     }
 
 }

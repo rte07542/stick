@@ -30,8 +30,6 @@ public class BoardService {
                 .name(name)
                 .space(space)
                 .description(description)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         return boardRepository.save(board);
@@ -58,17 +56,12 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Board가 없음. id=" + boardId));
 
-        if(name != null) {
+        if(name != null && !name.trim().isEmpty()) {
             board.setName(name);
         }
         if (description != null) {
             board.setDescription(description);
         }
-        if (name != null && !name.trim().isEmpty()) {
-            board.setName(name.trim());
-        }
-
-        board.setUpdatedAt(LocalDateTime.now());
 
         return boardRepository.save(board);
     }//수정함수 : 보드 이름이나 설명 바꾸는 기능

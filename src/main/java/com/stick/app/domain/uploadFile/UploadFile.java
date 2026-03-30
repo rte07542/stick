@@ -1,11 +1,10 @@
 package com.stick.app.domain.uploadFile;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.stick.global.domain.BaseEntity;
 import com.stick.app.domain.memo.Memo;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UploadFile {
+public class UploadFile extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,7 +22,6 @@ public class UploadFile {
     private String url;
     private String contentType;
     private Long size;
-    private LocalDateTime createdAt;
 
     @ManyToOne(fetch =  FetchType.LAZY)
     @JoinColumn(name = "memo_id")

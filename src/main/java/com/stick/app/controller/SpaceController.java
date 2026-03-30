@@ -21,8 +21,9 @@ public class SpaceController {
         return spaceService.createSpace(name, ownerId, description);
     }
 
+    // TODO: JWT 구현 후 @Request 어쩌구 블라
     @GetMapping
-    public List<Space> getMySpace(@RequestParam Long userId){
+    public List<Space> getMySpace(@RequestParam(required = false, defaultValue = "1") Long userId){
         return spaceService.getSpacesByUserId(userId);
     }
 

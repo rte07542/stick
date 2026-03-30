@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,6 +28,7 @@ public class SpaceService {
     private final SpaceMemberService spaceMemberService;
     private final SpaceMemberRepository spaceMemberRepository;
 
+    @Transactional
     public Space createSpace(String name, Long ownerId, String description) {
         User creator = userService.getUserById(ownerId);
 
@@ -38,10 +38,9 @@ public class SpaceService {
                 .build();
 
         Space savedSpace = spaceRepository.save(space);
-
         spaceMemberService.addMember(savedSpace.getId(), creator.getId(), SpaceRole.OWNER);
 
-        return spaceRepository.save(space);
+        return savedSpace;
     }
     /*  이 함수의 역할 - 컨트롤에서 name, 작성자, 설명을 받아서 작동함
         Space 객체 생성 - DB에 저장 - 저장된 객체 반환

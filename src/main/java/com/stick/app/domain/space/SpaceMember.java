@@ -4,8 +4,6 @@ import com.stick.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -35,12 +33,4 @@ public class SpaceMember {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SpaceRole role;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist(){
-        this.createdAt = LocalDateTime.now();
-    }
 }

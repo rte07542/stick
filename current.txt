@@ -1,0 +1,1313 @@
+﻿=== C:\dev\stick\src\main\java\com\stick\StickApplication.java ===
+package com.stick;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+@SpringBootApplication
+@EnableJpaAuditing
+public class StickApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(StickApplication.class, args);
+	}
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\controller\BoardController.java ===
+package com.stick.app.controller;
+
+
+import com.stick.app.domain.board.Board;
+import com.stick.app.dto.BoardCreateRequest;
+import com.stick.app.dto.BoardResponse;
+import com.stick.app.dto.BoardUpdateRequest;
+import com.stick.app.service.BoardService;
+import com.stick.app.service.SpaceMemberService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/boards")
+public class BoardController {
+    private final BoardService boardService;
+    private final SpaceMemberService spaceMemberService;
+
+    @PostMapping
+    public BoardResponse createBoard(@RequestBody BoardCreateRequest request) {
+        Board board = boardService.createBoard(
+                request.getName(),
+                request.getSpaceId(),
+                request.getDescription()
+        );
+        return BoardResponse.from(board, 0L, null);
+    }
+
+    //TODO: JWT 援ы쁽 ??@RequestParam ?쒓굅?섍퀬 @RequestAttribute("userId")濡?援먯껜
+    @GetMapping("/space/{spaceId}")
+    public List<BoardResponse> getBoardsBySpaceId(
+            @PathVariable Long spaceId,
+            @RequestParam(required = false, defaultValue = "1") Long userId) {
+        return boardService.getBoardsBySpaceId(spaceId);
+    }
+
+    @GetMapping("/{id}")
+    public BoardResponse getBoardById(@PathVariable Long id){
+        Board board = boardService.getBoardById(id);
+        return BoardResponse.from(board,0L,null);
+    }
+
+    @PatchMapping("/{id}")
+    public BoardResponse updateBoard(@PathVariable Long id,
+                                     @RequestBody BoardUpdateRequest request){
+       Board board = boardService.updateBoard(id, request.getName(), request.getDescription());
+       return BoardResponse.from(board,0L, null);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteBoard(@PathVariable Long id) {
+        boardService.deleteBoard(id);
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\controller\MemoController.java ===
+package com.stick.app.controller;
+
+import com.stick.app.domain.memo.Memo;
+import com.stick.app.dto.MemoCreateRequest;
+import com.stick.app.dto.MemoResponse;
+import com.stick.app.service.MemoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/memos")
+public class MemoController {
+    private final MemoService memoService;
+
+    @PostMapping
+    public MemoResponse createMemo(@RequestBody MemoCreateRequest request) {
+        return memoService.createMemo(request);
+    }
+
+    @GetMapping("/board/{boardId}")
+    public List<MemoResponse> getMemosByBoardId(@PathVariable Long boardId) {
+        return memoService.getMemosByBoardId(boardId)
+                .stream()
+                .map(MemoResponse::from)
+                .toList();
+    }
+
+    @GetMapping("/{id}")
+    public MemoResponse getMemoById(@PathVariable Long id){
+        return MemoResponse.from(memoService.getMemoById(id));
+    }
+
+    @PutMapping("/{memoId}")
+    public MemoResponse updateMemo(@PathVariable Long memoId,
+                           @RequestParam String content,
+                           @RequestParam String color) {
+        Memo memo = memoService.updateMemo(memoId,content,color);
+        return MemoResponse.from(memo);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteMemo(@PathVariable Long id){
+        memoService.deleteMemo(id);
+    }
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\controller\SpaceController.java ===
+package com.stick.app.controller;
+
+import com.stick.app.domain.space.Space;
+import com.stick.app.service.SpaceService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/spaces")
+public class SpaceController {
+
+    private final SpaceService spaceService;
+
+    @PostMapping
+    public Space createSpace(@RequestParam String name,
+                             @RequestParam Long ownerId,
+                             @RequestParam(required = false) String description) {
+        return spaceService.createSpace(name, ownerId, description);
+    }
+
+    // TODO: JWT 援ы쁽 ??@Request ?댁찈援?釉붾씪
+    @GetMapping
+    public List<Space> getMySpace(@RequestParam(required = false, defaultValue = "1") Long userId){
+        return spaceService.getSpacesByUserId(userId);
+    }
+
+    @GetMapping("/{id}")
+    public Space getSpaceById(@PathVariable Long id) {
+        return spaceService.getSpaceById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteSpace(@PathVariable Long id) {
+        spaceService.deleteSpace(id);
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\controller\SpaceMemberController.java ===
+package com.stick.app.controller;
+
+import com.stick.app.domain.space.Space;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.dto.SpaceMemberCreateRequest;
+import com.stick.app.service.SpaceMemberService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/spaces/{spaceId}/members")
+public class SpaceMemberController {
+    private final SpaceMemberService spaceMemberService;
+
+    @PostMapping
+    public SpaceMember addMember(@PathVariable Long spaceId,
+                                 @RequestBody SpaceMemberCreateRequest request){
+        return spaceMemberService.addMember(spaceId, request.getUserId(), request.getRole());
+    }
+
+    @GetMapping
+    public List<SpaceMember> getMember(@PathVariable Long spaceId) {
+        return spaceMemberService.getMembersBySpaceId(spaceId);
+    }
+
+    @GetMapping("/{userId}")
+    public SpaceMember getMember(@PathVariable Long spaceId,
+                                 @PathVariable Long userId) {
+        return spaceMemberService.getSpaceMember(spaceId,userId);
+    }
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\controller\UploadFileController.java ===
+package com.stick.app.controller;
+
+import com.stick.app.dto.UploadFileResponse;
+import com.stick.app.service.UploadFileService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/uploads")
+public class UploadFileController {
+    private final UploadFileService uploadFileService;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<UploadFileResponse> uploadFiles(
+            @RequestPart("files") List<MultipartFile> files
+    ) {
+        return uploadFileService.uploadFiles(files);
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\board\Board.java ===
+package com.stick.app.domain.board;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.stick.global.domain.BaseEntity;
+import com.stick.app.domain.memo.Memo;
+import com.stick.app.domain.space.Space;
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Board extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "space_id", nullable = false)
+    @JsonBackReference
+    private Space space;
+
+    private String name;
+    private Integer sortOrder; //?뺣젹 ?쒖꽌 踰덊샇
+    private String description; //蹂대뱶 ?ㅻ챸
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private List<Memo> memos = new ArrayList<>();
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\memo\Memo.java ===
+package com.stick.app.domain.memo;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.stick.global.domain.BaseEntity;
+import com.stick.app.domain.uploadFile.UploadFile;
+import com.stick.app.domain.board.Board;
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Memo extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    @JsonBackReference
+    private Board board;
+
+    private Long authorId;
+    private String content;
+    private String color;
+
+    @OneToMany(mappedBy = "memo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonManagedReference
+    private List<UploadFile> attachments = new ArrayList<>();
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\space\Space.java ===
+package com.stick.app.domain.space;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.stick.global.domain.BaseEntity;
+import com.stick.app.domain.board.Board;
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Space extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 100)
+    private String name; //?ㅽ럹?댁뒪 ?앹꽦??
+
+    @Column(length = 500)
+    private String description;//?ㅽ럹?댁뒪 ?ㅻ챸
+
+    @OneToMany(mappedBy = "space", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private List<Board> boards = new ArrayList<>();
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\space\SpaceMember.java ===
+package com.stick.app.domain.space;
+
+import com.stick.user.domain.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(
+        name = "space_members",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"space_id","user_id"})
+        }
+)
+public class SpaceMember {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "space_id", nullable = false)
+    private Space space;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SpaceRole role;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist(){
+        this.createdAt = LocalDateTime.now();
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\space\SpaceRole.java ===
+package com.stick.app.domain.space;
+
+public enum SpaceRole {
+    OWNER,
+    ADMIN,
+    MEMBER
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\domain\uploadFile\UploadFile.java ===
+package com.stick.app.domain.uploadFile;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.stick.global.domain.BaseEntity;
+import com.stick.app.domain.memo.Memo;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UploadFile extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String originalName;
+    private String storedName;
+    private String url;
+    private String contentType;
+    private Long size;
+
+    @ManyToOne(fetch =  FetchType.LAZY)
+    @JoinColumn(name = "memo_id")
+    @JsonBackReference
+    private Memo memo;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\BoardCreateRequest.java ===
+package com.stick.app.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class BoardCreateRequest {
+    private String name;
+    private Long spaceId;
+    private String description;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\BoardResponse.java ===
+package com.stick.app.dto;
+
+import com.stick.app.domain.board.Board;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class BoardResponse {
+    private Long id;
+    private String name;
+    private String description;
+    private Long spaceId;
+    private long memoCount;
+    private LocalDateTime lastModified;
+
+    public static BoardResponse from(Board board, long memoCount, LocalDateTime lastModified) {
+        return BoardResponse.builder()
+                .id(board.getId())
+                .name(board.getName())
+                .description(board.getDescription())
+                .spaceId(board.getSpace().getId())
+                .memoCount(memoCount)
+                .lastModified(lastModified)
+                .build();
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\BoardUpdateRequest.java ===
+package com.stick.app.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class BoardUpdateRequest {
+    private String name;
+    private String description;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\MemoCreateRequest.java ===
+package com.stick.app.dto;
+
+import lombok.Getter;
+
+import java.util.List;
+
+@Getter
+public class MemoCreateRequest {
+    private String content;
+    private Long boardId;
+    private Long authorId;
+    private String color;
+    private List<Long> attachmentIds;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\MemoResponse.java ===
+package com.stick.app.dto;
+
+import com.stick.app.domain.memo.Memo;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Builder
+public class MemoResponse {
+    private Long id;
+    private Long boardId;
+    private Long authorId;
+    private String content;
+    private String color;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private List<UploadFileResponse> attachments;
+
+    public static MemoResponse from(Memo memo) {
+        return MemoResponse.builder()
+                .id(memo.getId())
+                .boardId(memo.getBoard().getId())
+                .authorId(memo.getAuthorId())
+                .content(memo.getContent())
+                .color(memo.getColor())
+                .createdAt(memo.getCreatedAt())
+                .updatedAt(memo.getUpdatedAt())
+                .attachments(
+                        memo.getAttachments() == null
+                        ? List.of()
+                                : memo.getAttachments().stream()
+                                .map(UploadFileResponse::from)
+                                .toList()
+                )
+                .build();
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\SpaceMemberCreateRequest.java ===
+package com.stick.app.dto;
+
+import com.stick.app.domain.space.SpaceRole;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class SpaceMemberCreateRequest {
+    private Long userId;
+    private SpaceRole role;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\dto\UploadFileResponse.java ===
+package com.stick.app.dto;
+
+import com.stick.app.domain.uploadFile.UploadFile;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class UploadFileResponse {
+    private Long id;
+    private String originalName;
+    private String storedName;
+    private String url;
+    private String contentType;
+    private Long size;
+
+    public static UploadFileResponse from(UploadFile file){
+        return UploadFileResponse.builder()
+                .id(file.getId())
+                .originalName(file.getOriginalName())
+                .storedName(file.getStoredName())
+                .url(file.getUrl())
+                .contentType(file.getContentType())
+                .size(file.getSize())
+                .build();
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\repository\board\BoardRepository.java ===
+package com.stick.app.repository.board;
+
+import com.stick.app.domain.board.Board;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface BoardRepository extends JpaRepository<Board, Long> {
+    List<Board> findBySpaceId(Long spaceId);
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\repository\memo\MemoRepository.java ===
+package com.stick.app.repository.memo;
+
+import com.stick.app.domain.memo.Memo;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface MemoRepository extends JpaRepository<Memo, Long> {
+    List<Memo> findByBoardId(Long BoardId);
+    Long countByBoardId(Long boardId);
+    @Query(value = "SELECT MAX(updated_at) FROM memo WHERE board_id = :boardId", nativeQuery = true)
+    LocalDateTime findLastModifiedByBoardId(@Param("boardId") Long boardId); // ??蹂대뱶?먯꽌 媛??理쒓렐???섏젙??硫붾え ?쒓컙 ?섎굹 異쒕젰
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\repository\space\SpaceMemberRepository.java ===
+package com.stick.app.repository.space;
+
+import com.stick.app.domain.space.Space;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface SpaceMemberRepository extends JpaRepository<SpaceMember, Long> {
+    List<SpaceMember> findBySpaceId(Long spaceId);
+    List<SpaceMember> findByUserId(Long userId);
+    Optional<SpaceMember> findBySpaceIdAndUserId(Long spaceId, Long userId);
+    boolean existsBySpaceIdAndUserId(Long spaceId, Long userId);
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\repository\space\SpaceRepository.java ===
+package com.stick.app.repository.space;
+
+import com.stick.app.domain.space.Space;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SpaceRepository extends JpaRepository<Space, Long> {
+}
+
+//extends JpaRepository : JpaRepository 湲곕뒫???꾨? ?곸냽 諛쏅뒗??
+/* JpRepository媛 媛吏怨??덈뒗 湲곕뒫
+ save()
+ findAll()
+ findById()
+ deleteById()
+ count()
+ existsById()
+ ... ?깅벑
+*/
+
+=== C:\dev\stick\src\main\java\com\stick\app\repository\uploadFile\UploadFileRepository.java ===
+package com.stick.app.repository.uploadFile;
+
+
+import com.stick.app.domain.uploadFile.UploadFile;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UploadFileRepository extends JpaRepository<UploadFile, Long> {
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\service\BoardService.java ===
+package com.stick.app.service;
+
+import com.stick.app.domain.board.Board;
+import com.stick.app.domain.space.Space;
+import com.stick.app.dto.BoardResponse;
+import com.stick.app.repository.memo.MemoRepository;
+import com.stick.app.repository.space.SpaceRepository;
+import com.stick.app.repository.board.BoardRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class BoardService {
+
+    private final SpaceRepository spaceRepository;
+    private final BoardRepository boardRepository;
+    private final MemoRepository memoRepository;
+
+
+    public Board createBoard(String name, Long spaceId, String description){
+
+        Space space = findSpaceById(spaceId);
+
+        Board board = Board.builder()
+                .name(name)
+                .space(space)
+                .description(description)
+                .build();
+
+        return boardRepository.save(board);
+    }
+
+    public List<BoardResponse> getBoardsBySpaceId(Long spaceId){
+        List<Board> boards = boardRepository.findBySpaceId(spaceId);
+        return boards.stream()
+                .map(board -> BoardResponse.from(
+                        board,
+                        memoRepository.countByBoardId(board.getId()),
+                        memoRepository.findLastModifiedByBoardId(board.getId())
+                ))
+                .toList();
+    } // ?꾨떖諛쏆? spaceId???랁븳 Board紐⑸줉??DB?먯꽌 李얠븘??諛섑솚?섎뒗 ?⑥닔
+
+    public Board getBoardById(Long id){
+        return boardRepository.findById(id)
+                .orElseThrow(()-> new IllegalArgumentException("?대떦 Board媛 ?놁쓬. Id="+id));
+    } //optional?덉뿉??Board ?섎굹瑜?李얠븘?? ?덉쑝硫?諛섑솚, ?놁쑝硫??먮윭.
+
+    @Transactional
+    public Board updateBoard(Long boardId, String name, String description) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("?대떦 Board媛 ?놁쓬. id=" + boardId));
+
+        if(name != null) {
+            board.setName(name);
+        }
+        if (description != null) {
+            board.setDescription(description);
+        }
+        if (name != null && !name.trim().isEmpty()) {
+            board.setName(name.trim());
+        }
+        return boardRepository.save(board);
+    }//?섏젙?⑥닔 : 蹂대뱶 ?대쫫?대굹 ?ㅻ챸 諛붽씀??湲곕뒫
+
+    @Transactional
+    public void deleteBoard(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("?대떦 Board媛 ?놁쓬. id="+id));
+        boardRepository.delete(board);
+    }//board 吏?곌린
+
+    private Space findSpaceById(Long spaceId) {
+        return spaceRepository.findById(spaceId)
+                .orElseThrow(() -> new IllegalArgumentException("?대떦 Space媛 ?놁쓬. id=" + spaceId));
+    }
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\service\MemoService.java ===
+package com.stick.app.service;
+
+import com.stick.app.domain.board.Board;
+import com.stick.app.domain.memo.Memo;
+import com.stick.app.domain.uploadFile.UploadFile;
+import com.stick.app.dto.MemoCreateRequest;
+import com.stick.app.dto.MemoResponse;
+import com.stick.app.repository.board.BoardRepository;
+import com.stick.app.repository.memo.MemoRepository;
+import com.stick.app.repository.uploadFile.UploadFileRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class MemoService {
+    private final BoardRepository boardRepository;
+    private final MemoRepository memoRepository;
+    private final UploadFileRepository uploadFileRepository;
+
+    public MemoResponse createMemo(MemoCreateRequest request) {
+        Board board = boardRepository.findById(request.getBoardId())
+                .orElseThrow(() -> new IllegalArgumentException("議댁옱?섏? ?딅뒗 蹂대뱶."));
+
+        Memo memo = Memo.builder()
+                .content(request.getContent())
+                .board(board)
+                .authorId(request.getAuthorId())
+                .color(request.getColor())
+                .attachments(new ArrayList<>())
+                .build();
+
+        Memo saveMemo = memoRepository.save(memo);
+
+        if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
+            List<UploadFile> files = uploadFileRepository.findAllById(request.getAttachmentIds());
+            for (UploadFile file : files) {
+                file.setMemo(saveMemo);
+            }
+            uploadFileRepository.saveAll(files);
+        }
+
+        return MemoResponse.from(saveMemo);
+    }
+
+    public List<Memo> getMemosByBoardId(Long boardId){
+        return memoRepository.findByBoardId(boardId);
+    }
+
+    public Memo getMemoById(Long id){
+        return memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("?대떦 Memo媛 ?놁쓬. Id="+id));
+    }
+
+    public Memo updateMemo(Long id, String content, String color){
+        Memo memo = memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("?대떦 Memo媛 ?놁쓬. id="+id));
+        memo.setContent(content);
+        memo.setColor(color);
+
+        return memoRepository.save(memo);
+    }
+
+    @Transactional
+    public void deleteMemo(Long id){
+        Memo memo = memoRepository.findById(id)
+                .orElseThrow(()->new IllegalArgumentException("?대떦 memo媛 ?놁쓬 id="+id));
+        memoRepository.delete(memo);
+    }
+
+
+    private Board findBoardById(Long boardId){
+        return boardRepository.findById(boardId)
+                .orElseThrow(()->new IllegalArgumentException("?대떦 board媛 ?놁쓬. id"+boardId));
+    }
+
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\service\SpaceMemberService.java ===
+package com.stick.app.service;
+
+import com.stick.app.domain.space.Space;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.repository.space.SpaceMemberRepository;
+import com.stick.app.repository.space.SpaceRepository;
+import com.stick.user.domain.User;
+import com.stick.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class SpaceMemberService {
+    private final SpaceMemberRepository spaceMemberRepository;
+    private final SpaceRepository spaceRepository;
+    private final UserRepository userRepository;
+
+    public SpaceMember addMember(Long spaceId, Long userId, SpaceRole role) {
+        if (spaceMemberRepository.existsBySpaceIdAndUserId(spaceId, userId)){
+            throw new IllegalArgumentException("?대? ?ㅽ럹?댁뒪???랁븳 ?좎?");
+        }
+
+        Space space = spaceRepository.findById(spaceId)
+                .orElseThrow(()->new IllegalArgumentException("?녿뒗 ?ㅽ럹?댁뒪"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new IllegalArgumentException("?녿뒗 ?좎?"));
+
+        SpaceMember spaceMember = SpaceMember.builder()
+                .space(space)
+                .user(user)
+                .role(role)
+                .build();
+        return spaceMemberRepository.save(spaceMember);
+    }
+
+    public SpaceMember getSpaceMember(Long spaceId, Long userId) {
+        return spaceMemberRepository.findBySpaceIdAndUserId(spaceId,userId)
+                .orElseThrow(()->new IllegalArgumentException("?ㅽ럹?댁뒪 硫ㅻ쾭媛 ?꾨떂"));
+    }
+
+    public boolean isMember(Long spaceId, Long userId) {
+        return spaceMemberRepository.existsBySpaceIdAndUserId(spaceId, userId);
+    }
+
+    public List<SpaceMember> getMembersBySpaceId(Long spaceId) {
+        return spaceMemberRepository.findBySpaceId(spaceId);
+    }
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\service\SpaceService.java ===
+package com.stick.app.service;
+
+import com.stick.app.domain.space.Space;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.repository.space.SpaceMemberRepository;
+import com.stick.app.repository.space.SpaceRepository;
+import com.stick.user.domain.User;
+import com.stick.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class SpaceService {
+
+
+    private final SpaceRepository spaceRepository; //?덊룷吏?좊━ ?곌껐
+    // private final = ?앹꽦??二쇱엯 + 媛앹껜 蹂寃?諛⑹?
+    /*
+        private : ??蹂?섎뒗 ???대옒???덉뿉?쒕쭔 ?ъ슜
+        final : ?쒕쾲 媛믪씠 ?ㅼ뼱媛硫??ㅼ떆 諛붽? ???놁쓬
+    */
+    private final UserService userService;
+    private final SpaceMemberService spaceMemberService;
+    private final SpaceMemberRepository spaceMemberRepository;
+
+    @Transactional
+    public Space createSpace(String name, Long ownerId, String description) {
+        User creator = userService.getUserById(ownerId);
+
+        Space space = Space.builder()
+                .name(name)
+                .description(description)
+                .build();
+
+        Space savedSpace = spaceRepository.save(space);
+
+        spaceMemberService.addMember(savedSpace.getId(), creator.getId(), SpaceRole.OWNER);
+
+        return savedSpace;
+    }
+    /*  ???⑥닔????븷 - 而⑦듃濡ㅼ뿉??name, ?묒꽦?? ?ㅻ챸??諛쏆븘???묐룞??
+        Space 媛앹껜 ?앹꽦 - DB?????- ??λ맂 媛앹껜 諛섑솚
+        public Space createSpace(String name, Long ownerId, String description) : controller?먯꽌 3媛吏 ?뺣낫瑜?諛쏆븘?⑤떎.
+        Space space : space 媛앹껜 ?섎굹 ?앹꽦
+        return spaceRepository.save(space); :
+    */
+
+    public List<Space> getAllSpaces() {
+        return spaceRepository.findAll();
+    }
+    //space ?뚯씠釉??댁슜 ?꾩껜 遺덈윭?ㅺ린. 而⑦듃濡ㅼ씠 ?붿껌?섎㈃ ?덉??ㅽ넗由ы븳?뚯꽌 罹먮궡??
+
+    public Space getSpaceById(Long id) {
+        return spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("?대떦 Space媛 ?놁쓬. id=" + id));
+    }
+    // optional?덉뿉??Space瑜?李얠븘?? ?덉쑝硫?諛섑솚, ?놁쑝硫??먮윭.
+    // optional??萸섍퉴? "媛믪씠 ?덉쓣?섎룄 ?놁쓣?섎룄 ?덉쓬"???덉쟾?섍쾶 ?ㅻ（???곸옄
+
+    @Transactional
+    public void deleteSpace(Long id) {
+        Space space = spaceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("?대떦 Space媛 ?놁쓬. id=" + id));
+
+        spaceRepository.delete(space);
+    }
+    //?꾨떖 諛쏆? id??Space瑜?db?먯꽌 吏?곕뒗 ?⑥닔
+
+    public List<Space> getSpacesByUserId(Long userId) {
+        List<SpaceMember> members = spaceMemberRepository.findByUserId (userId);
+        return members.stream()
+                .map(SpaceMember::getSpace)
+                .toList();
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\app\service\UploadFileService.java ===
+package com.stick.app.service;
+
+import com.stick.app.domain.uploadFile.UploadFile;
+import com.stick.app.dto.UploadFileResponse;
+import com.stick.app.repository.uploadFile.UploadFileRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class UploadFileService {
+    private final UploadFileRepository uploadFileRepository;
+    private final String uploadDir = System.getProperty("user.dir")+"/uploads";
+
+    public List<UploadFileResponse> uploadFiles(List<MultipartFile> files) {
+        return files.stream()
+                .map(this::uploadSingleFile)
+                .toList();
+    }
+
+    public UploadFileResponse uploadSingleFile(MultipartFile file){
+        validateImage(file);
+
+        try{
+            Path uploadPath = Paths.get(uploadDir);
+            if (Files.notExists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalName = file.getOriginalFilename();
+            String storedName = UUID.randomUUID() + "_" + originalName;
+            Path filePath = uploadPath.resolve(storedName);
+
+            file.transferTo(filePath.toFile());
+
+            UploadFile uploadFile = UploadFile.builder()
+                    .originalName(originalName)
+                    .storedName(storedName)
+                    .url("/uploads/" + storedName)
+                    .contentType(file.getContentType())
+                    .size(file.getSize())
+                    .build();
+
+            return UploadFileResponse.from(uploadFileRepository.save(uploadFile));
+
+        } catch (IOException e) {
+            throw new RuntimeException("?뚯씪 ????ㅽ뙣",e);
+        }
+    }
+
+    private void validateImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw  new IllegalArgumentException("鍮??뚯씪? ?낅줈?쒗븷 ???놁쓬");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("?대?吏 ?뚯씪留??낅줈??媛??);
+        }
+
+        long maxSize = 5 * 1024 * 1024; //5MB
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("?뚯씪 ?ш린??5MB ?댄븯?ъ빞 ??);
+        }
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\global\config\WebConfig.java ===
+package com.stick.global.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.nio.file.Paths;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry){
+        String uploadPath = Paths.get(System.getProperty("user.dir"),"uploads")
+                        .toFile()
+                                .getAbsolutePath();
+
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
+    }
+}
+
+=== C:\dev\stick\src\main\java\com\stick\global\domain\BaseEntity.java ===
+package com.stick.global.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Getter
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity {
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\user\controller\UserController.java ===
+package com.stick.user.controller;
+
+import com.stick.user.domain.User;
+import com.stick.user.dto.LoginRequest;
+import com.stick.user.dto.SignupRequest;
+import com.stick.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/users")
+public class UserController {
+    private final UserService userService;
+
+    @PostMapping("/signup")
+    public User signup(@RequestBody SignupRequest request) {
+        return userService.signup(
+                request.getLoginId(),
+                request.getPassword(),
+                request.getNickname(),
+                request.isAgeConfirmed()
+        );
+    }
+
+    @PostMapping("/login")
+    public User login(@RequestBody LoginRequest request) {
+        return userService.login(
+                request.getLoginId(),
+                request.getPassword()
+        );
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\user\domain\User.java ===
+package com.stick.user.domain;
+
+import com.stick.global.domain.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Table(name = "users")
+public class User extends BaseEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false,unique = true,length = 50)
+    private String loginId; //濡쒓렇???꾩씠??
+
+    @Column(nullable = false)
+    private String password; //鍮꾨?踰덊샇
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String nickname; //?쒖떆 ?대쫫
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+}
+
+=== C:\dev\stick\src\main\java\com\stick\user\dto\LoginRequest.java ===
+package com.stick.user.dto;
+
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class LoginRequest {
+    private String loginId;
+    private String password;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\user\dto\SignupRequest.java ===
+package com.stick.user.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class SignupRequest {
+    private String loginId;
+    private String password;
+    private String nickname;
+    private boolean ageConfirmed;
+}
+
+=== C:\dev\stick\src\main\java\com\stick\user\repository\UserRepository.java ===
+package com.stick.user.repository;
+
+import com.stick.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    boolean existsByLoginId(String loginId);
+    Optional<User> findByLoginId(String loginId);
+}
+
+
+=== C:\dev\stick\src\main\java\com\stick\user\service\UserService.java ===
+package com.stick.user.service;
+
+import com.stick.user.domain.User;
+import com.stick.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final UserRepository userRepository;
+
+    public User signup(String loginId, String password, String nickname, boolean ageConfirmed) {
+        if (!ageConfirmed) {
+            throw new IllegalArgumentException("?대┛?대뒗 媛?? ?ш릿 ?쇰Ⅸ留뚯쓽 ?멸퀎??);
+        }
+        if(loginId == null || loginId.isBlank()){
+            throw new IllegalArgumentException("?꾩씠?붾? ?낅젰?댁빞吏");
+        }
+        if(password == null || password.isBlank()) {
+            throw new IllegalArgumentException("鍮꾨?踰덊샇 ?낅젰?댁빞吏");
+        }
+        if(nickname == null || nickname.isBlank()) {
+            throw new IllegalArgumentException("?됰꽕?꾩쓣 ?낅젰?섏꽭??);
+        }
+        if(userRepository.existsByLoginId(loginId)) {
+            throw new IllegalArgumentException("?대? ?ъ슜 以묒씤 ?꾩씠??);
+        }
+        User user = User.builder()
+                .loginId(loginId)
+                .password(password)
+                .nickname(nickname)
+                .build();
+
+        return userRepository.save(user);
+    }
+
+    public User login(String loginId, String password) {
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(()->new IllegalArgumentException("?뺣낫媛 ?쇱튂?섏? ?딆쓬"));
+        if (!user.getPassword().equals(password)) {
+            throw new IllegalArgumentException("?뺣낫媛 ?쇱튂?섏? ?딆쓬");
+        }
+        return user;
+    }
+
+    public User getUserById(Long userId){
+        return userRepository.findById(userId)
+                .orElseThrow(()->new IllegalArgumentException("?녿뒗 ?좎?"));
+    }
+}
+
+=== C:\dev\stick\src\test\java\com\stick\StickApplicationTests.java ===
+package com.stick;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class StickApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
