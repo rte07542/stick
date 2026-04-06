@@ -15,8 +15,16 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
 
     private static final List<String> WHITELIST = List.of(
-            "/user/login",
-            "/user/signup"
+            "/users/login",
+            "/users/signup",
+            "/favicon.ico",
+            "/",
+            "/index.html",
+            "/html/",
+            "/js/",
+            "/css/",
+            "/img/",
+            "/uploads/"
     );
 
     @Override
@@ -26,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // 화이트리스트는 그냥 통과
-        if (WHITELIST.stream().anyMatch(path::startsWith)) {
+        if (WHITELIST.stream().anyMatch(p -> p.equals("/") ? path.equals("/") : path.startsWith(p))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -52,8 +60,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         //토큰에서 userId 꺼내서 request에 심어줌
         Long userId = jwtUtil.getUserId(token);
+        System.out.println("DEBUG userId: " + userId);
         request.setAttribute("userId", userId);
-
         filterChain.doFilter(request, response);
     }
 }

@@ -4,6 +4,7 @@ import com.stick.app.domain.memo.Memo;
 import com.stick.app.dto.MemoCreateRequest;
 import com.stick.app.dto.MemoResponse;
 import com.stick.app.service.MemoService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,14 +36,24 @@ public class MemoController {
 
     @PutMapping("/{memoId}")
     public MemoResponse updateMemo(@PathVariable Long memoId,
-                           @RequestParam String content,
-                           @RequestParam String color) {
-        Memo memo = memoService.updateMemo(memoId,content,color);
-        return MemoResponse.from(memo);
+                                   @RequestParam String content,
+                                   @RequestParam String color,
+                                   HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        MemoResponse memo = MemoResponse.from(memoService.getMemoById(memoId));
+        if (!memo.getAuthorId().equals(userId)) {
+            throw new IllegalArgumentException("수정 권한 없음");
+        }
+        return MemoResponse.from(memoService.updateMemo(memoId,content,color));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteMemo(@PathVariable Long id){
+    public void deleteMemo(@PathVariable Long id, HttpServletRequest request){
+        Long userId = (Long) request.getAttribute("userId");
+        MemoResponse memo = MemoResponse.from(memoService.getMemoById(id));
+        if (!memo.getAuthorId().equals(userId)) {
+            throw new IllegalArgumentException("삭제 권한 없음");
+        }
         memoService.deleteMemo(id);
     }
 

@@ -3,6 +3,7 @@ package com.stick.user.service;
 import com.stick.user.domain.User;
 import com.stick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,7 +29,7 @@ public class UserService {
         }
         User user = User.builder()
                 .loginId(loginId)
-                .password(password)
+                .password(BCrypt.hashpw(password, BCrypt.gensalt()))
                 .nickname(nickname)
                 .build();
 
@@ -38,7 +39,7 @@ public class UserService {
     public User login(String loginId, String password) {
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(()->new IllegalArgumentException("정보가 일치하지 않음"));
-        if (!user.getPassword().equals(password)) {
+        if (!BCrypt.checkpw(password, user.getPassword())) {
             throw new IllegalArgumentException("정보가 일치하지 않음");
         }
         return user;

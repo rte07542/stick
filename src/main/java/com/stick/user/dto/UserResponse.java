@@ -1,7 +1,6 @@
 package com.stick.user.dto;
 
 import com.stick.user.domain.User;
-import com.stick.user.repository.UserRepository;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,6 +13,7 @@ public class UserResponse {
     private String loginId;
     private String nickname;
     private LocalDateTime createdAt;
+    private String token;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -21,6 +21,16 @@ public class UserResponse {
                 .loginId(user.getLoginId())
                 .nickname(user.getNickname())
                 .createdAt(user.getCreatedAt())
+                .build();
+    }
+
+    public static UserResponse from(User user, String token) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .loginId(user.getLoginId())
+                .nickname(user.getNickname())
+                .createdAt(user.getCreatedAt())
+                .token(token)
                 .build();
     }
 }

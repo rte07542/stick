@@ -7,6 +7,7 @@ import com.stick.app.dto.BoardResponse;
 import com.stick.app.dto.BoardUpdateRequest;
 import com.stick.app.service.BoardService;
 import com.stick.app.service.SpaceMemberService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,20 +21,21 @@ public class BoardController {
     private final SpaceMemberService spaceMemberService;
 
     @PostMapping
-    public BoardResponse createBoard(@RequestBody BoardCreateRequest request) {
-        Board board = boardService.createBoard(
-                request.getName(),
-                request.getSpaceId(),
-                request.getDescription()
-        );
-        return BoardResponse.from(board, 0L, null);
+    public Board createBoard(@RequestParam Long spaceId,
+                             @RequestParam String name,
+                             HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if (!spaceMemberService.isMember(spaceId, userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아님");
+        }
+        return boardService.createBoard(spaceId, name);
     }
 
-    //TODO: JWT 구현 후 @RequestParam 제거하고 @RequestAttribute("userId")로 교체
     @GetMapping("/space/{spaceId}")
     public List<BoardResponse> getBoardsBySpaceId(
             @PathVariable Long spaceId,
-            @RequestParam(required = false, defaultValue = "1") Long userId) {
+            HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
         return boardService.getBoardsBySpaceId(spaceId);
     }
 
@@ -51,7 +53,12 @@ public class BoardController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBoard(@PathVariable Long id) {
+    public void deleteBoard(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        Long spaceId = boardService.getBoardById(id).getSpace().getId();
+        if (!spaceMemberService.isMember(spaceId, userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아님");
+        }
         boardService.deleteBoard(id);
     }
 }

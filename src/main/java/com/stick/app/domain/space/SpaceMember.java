@@ -1,5 +1,6 @@
 package com.stick.app.domain.space;
 
+import com.stick.global.domain.BaseEntity;
 import com.stick.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,15 +9,13 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Table(
         name = "space_members",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"space_id","user_id"})
         }
 )
-public class SpaceMember {
+public class SpaceMember extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,4 +32,11 @@ public class SpaceMember {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SpaceRole role;
+
+    @Builder
+    public SpaceMember(Space space, User user, SpaceRole role) {
+        this.space = space;
+        this.user = user;
+        this.role = role;
+    }
 }

@@ -77,7 +77,7 @@ function initHome() {
     loginSubmitBtn.disabled = true;
 
     try {
-      const response = await fetch("/users/login", {
+      const response = await authFetch("/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -98,6 +98,7 @@ function initHome() {
       localStorage.setItem(STORAGE_KEYS.role, ROLE.member);
       localStorage.setItem(STORAGE_KEYS.loginUserId, String(user.id));
       localStorage.setItem(STORAGE_KEYS.loginUserNickname, user.nickname ?? "");
+      localStorage.setItem("token", user.token);
 
       location.href = ROUTES.app;
     } catch (err) {
@@ -116,6 +117,17 @@ function initHome() {
 
   function onOverlayClick(e) {
     if (e.target === overlay) closeModal(overlay);
+  }
+
+  function authFetch(url, options = {}) {
+      const token = localStorage.getItem("token");
+      return fetch(url, {
+          ...options,
+          headers: {
+              ...(options.headers || {}),
+              "Authorization": `Bearer ${token}`
+          }
+      });
   }
 
   enterBtn?.addEventListener("click", onEnter);

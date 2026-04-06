@@ -208,9 +208,8 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
       const nextDescription = el.boardDesc.textContent.trim();
 
       try {
-
-
-        currentBoard.description = updatedBoard.description ?? nextDescription;
+      const updatedBoard = await updateBoard(currentBoard.id, { description: nextDescription });
+          currentBoard.description = updatedBoard.description ?? nextDescription;
         syncBoardHeader();
       } catch (err) {
         console.error(err);
@@ -280,7 +279,7 @@ let lastSidebarW = null;
 // state (demo)
 // =========================
 const state = {
-  me: "1",
+  me: localStorage.getItem("loginUserId") ?? "1",
   spaceId: null,
   boardId: null,
   search: "",
@@ -574,7 +573,7 @@ async function handleJoinByCode() {
 }
 
 async function fetchMySpaces() {
-  const res = await fetch("http://localhost:8080/spaces", {
+  const res = await authFetch("http://localhost:8080/spaces", {
     credentials: "include"
   });
 
@@ -585,14 +584,10 @@ async function fetchMySpaces() {
   return await res.json();
 }
 
-async function createSpace(name, ownerId, description = "") {
-  const params = new URLSearchParams({
-    name,
-    ownerId: String(ownerId),
-    description
-  });
+async function createSpace(name, description = "") {
+  const params = new URLSearchParams({ name, description });
 
-  const res = await fetch(`http://localhost:8080/spaces?${params.toString()}`, {
+  const res = await authFetch(`http://localhost:8080/spaces?${params.toString()}`, {
     method: "POST",
     credentials: "include"
   });
@@ -605,7 +600,7 @@ async function createSpace(name, ownerId, description = "") {
 }
 
 async function joinSpaceByCode(inviteCode) {
-  const res = await fetch("/spaces/join", {
+  const res = await authFetch("/spaces/join", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -941,7 +936,7 @@ async function submitQuick(textarea) {
     await createMemoRequest({
       content: text,
       boardId: state.boardId,
-      authorId: 1,
+      authorId: Number(state.me),
       color: state.quickColor,
       attachmentIds: []
     });
@@ -1371,7 +1366,7 @@ createBtn?.addEventListener("click", async () => {
     await createMemoRequest({
       content: text,
       boardId: state.boardId,
-      authorId: 1,
+      authorId: Number(state.me),
       color: picked ?? state.quickColor,
       attachmentIds
     });
@@ -1581,7 +1576,15 @@ function renderMemberPanel(){
 
 }
 
-function openMemberPanel(){
+async function openMemberPanel(){
+  const currentSpace = getCurrentSpace();
+  if (currentSpace) {
+    const res = await authFetch(`http://localhost:8080/spaces/${currentSpace.id}/members`, {
+      credentials: "include"
+    });
+    const members = await res.json();
+    currentSpace.members = members.map(m => m.nickname);
+  }
   renderMemberPanel();
   el.memberPanel.classList.add("open");
 }
@@ -1746,7 +1749,7 @@ async function handleCreateSpace() {
   }
 
   try {
-    const newSpace = await createSpace(name, 1, "");
+    const newSpace = await createSpace(name, "");
 
     el.createSpaceNameInput.value = "";
 
@@ -1954,7 +1957,7 @@ function openDeleteSpaceConfirm(spaceId) {
 }
 
 async function requestDeleteSpace(spaceId) {
-  const res = await fetch(`http://localhost:8080/spaces/${spaceId}`, {
+  const res = await authFetch(`http://localhost:8080/spaces/${spaceId}`, {
     method: "DELETE",
     credentials: "include"
   });
@@ -2011,7 +2014,7 @@ async function deleteSpace(spaceId) {
 }
 
 async function updateSpace(spaceId, name, description) {
-  const res = await fetch(`http://localhost:8080/spaces/${spaceId}`, {
+  const res = await authFetch(`http://localhost:8080/spaces/${spaceId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -2039,9 +2042,20 @@ function leaveSpace(spaceId) {
   alert(`여기에 "${space.name}" 나가기 API 연결하면 된다.`);
 }
 
+function authFetch(url, options = {}) {
+    const token = localStorage.getItem("token");
+    return fetch(url, {
+        ...options,
+        headers: {
+            ...(options.headers || {}),
+            "Authorization": `Bearer ${token}`
+        }
+    });
+}
+
 async function fetchAndApplySpaces() {
   try {
-    const response = await fetch("http://localhost:8080/spaces", {
+    const response = await authFetch("http://localhost:8080/spaces", {
       credentials: "include"
     });
 
@@ -2096,7 +2110,7 @@ async function fetchAndApplySpaces() {
 // =========================
 
 async function createBoard(spaceId, name, description = "") {
-  const res = await fetch(`http://localhost:8080/boards`, {
+  const res = await authFetch(`http://localhost:8080/boards`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -2180,7 +2194,7 @@ function closeBoardContextMenu() {
 }
 
 async function requestDeleteBoard(boardId) {
-  const res = await fetch(`http://localhost:8080/boards/${boardId}`, {
+  const res = await authFetch(`http://localhost:8080/boards/${boardId}`, {
     method: "DELETE",
     credentials: "include"
   });
@@ -2282,7 +2296,7 @@ async function requestUpdateBoard(boardId, name, description = "") {
     description
   });
 
-  const res = await fetch(`http://localhost:8080/boards/${boardId}?${params.toString()}`, {
+  const res = await authFetch(`http://localhost:8080/boards/${boardId}?${params.toString()}`, {
     method: "PUT",
     credentials: "include"
   });
@@ -2410,7 +2424,7 @@ function syncBoardAddButton() {
 }
 
 async function fetchBoardsBySpace(spaceId) {
-  const res = await fetch(`http://localhost:8080/boards/space/${spaceId}`, {
+  const res = await authFetch(`http://localhost:8080/boards/space/${spaceId}`, {
     credentials: "include"
   });
 
@@ -2426,7 +2440,7 @@ async function fetchBoardsBySpace(spaceId) {
 // =========================
 
 async function fetchMemosByBoard(boardId) {
-  const res = await fetch(`http://localhost:8080/memos/board/${boardId}`, {
+  const res = await authFetch(`http://localhost:8080/memos/board/${boardId}`, {
     credentials: "include"
   });
 
@@ -2438,7 +2452,7 @@ async function fetchMemosByBoard(boardId) {
 }
 
 async function createMemoRequest({ content, boardId, authorId, color, attachmentIds = [] }) {
-  const res = await fetch("http://localhost:8080/memos", {
+  const res = await authFetch("http://localhost:8080/memos", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -2468,7 +2482,7 @@ async function updateMemoRequest(memoId, content, color) {
     color
   });
 
-  const res = await fetch(`http://localhost:8080/memos/${memoId}?${params.toString()}`, {
+  const res = await authFetch(`http://localhost:8080/memos/${memoId}?${params.toString()}`, {
     method: "PUT",
     credentials: "include"
   });
@@ -2483,7 +2497,7 @@ async function updateMemoRequest(memoId, content, color) {
 }
 
 async function deleteMemoRequest(memoId) {
-  const res = await fetch(`http://localhost:8080/memos/${memoId}`, {
+  const res = await authFetch(`http://localhost:8080/memos/${memoId}`, {
     method: "DELETE",
     credentials: "include"
   });
@@ -2635,7 +2649,7 @@ function syncBoardHeader() { //board header 화면 동기화 함수
 }
 
 async function updateBoard(boardId, payload) { // 보드 설명 수정 api 함수
-  const res = await fetch(`http://localhost:8080/boards/${boardId}`, {
+  const res = await authFetch(`http://localhost:8080/boards/${boardId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"
@@ -2660,7 +2674,7 @@ async function uploadFiles(files) { //파일 업로드 함수
     formData.append("files", file);
   });
 
-  const res = await fetch("http://localhost:8080/uploads", {
+  const res = await authFetch("http://localhost:8080/uploads", {
     method: "POST",
     body: formData,
     credentials: "include"

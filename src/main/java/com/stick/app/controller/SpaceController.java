@@ -2,6 +2,7 @@ package com.stick.app.controller;
 
 import com.stick.app.domain.space.Space;
 import com.stick.app.service.SpaceService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,14 +17,15 @@ public class SpaceController {
 
     @PostMapping
     public Space createSpace(@RequestParam String name,
-                             @RequestParam Long ownerId,
-                             @RequestParam(required = false) String description) {
+                             @RequestParam(required = false) String description,
+                             HttpServletRequest request) {
+        Long ownerId = (Long) request.getAttribute("userId");
         return spaceService.createSpace(name, ownerId, description);
     }
 
-    // TODO: JWT 구현 후 @Request 어쩌구 블라
     @GetMapping
-    public List<Space> getMySpace(@RequestParam(required = false, defaultValue = "1") Long userId){
+    public List<Space> getMySpace(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
         return spaceService.getSpacesByUserId(userId);
     }
 
