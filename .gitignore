@@ -42,3 +42,4 @@ out/
 workspace.xml
 misc.xml
 modules.xml
+.claude/
