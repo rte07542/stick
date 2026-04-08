@@ -6,7 +6,7 @@ import com.stick.app.dto.BoardCreateRequest;
 import com.stick.app.dto.BoardResponse;
 import com.stick.app.dto.BoardUpdateRequest;
 import com.stick.app.service.BoardService;
-import com.stick.app.service.SpaceMemberService;
+import com.stick.app.service.space.SpaceMemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +23,13 @@ public class BoardController {
     @PostMapping
     public Board createBoard(@RequestParam Long spaceId,
                              @RequestParam String name,
+                             @RequestParam(required = false) String description,
                              HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         if (!spaceMemberService.isMember(spaceId, userId)) {
             throw new IllegalArgumentException("스페이스 멤버가 아님");
         }
-        return boardService.createBoard(spaceId, name);
+        return boardService.createBoard(name, spaceId, description);
     }
 
     @GetMapping("/space/{spaceId}")

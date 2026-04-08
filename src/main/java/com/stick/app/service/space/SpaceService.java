@@ -1,4 +1,4 @@
-package com.stick.app.service;
+package com.stick.app.service.space;
 
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;
@@ -16,7 +16,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SpaceService {
-
 
     private final SpaceRepository spaceRepository; //레포지토리 연결
     // private final = 생성자 주입 + 객체 변경 방지
@@ -71,7 +70,7 @@ public class SpaceService {
     //전달 받은 id의 Space를 db에서 지우는 함수
 
     public List<Space> getSpacesByUserId(Long userId) {
-        List<SpaceMember> members = spaceMemberRepository.findByUserId (userId);
+        List<SpaceMember> members = spaceMemberRepository.findByUserId(userId);
         return members.stream()
                 .map(SpaceMember::getSpace)
                 .toList();

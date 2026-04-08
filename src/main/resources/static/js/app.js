@@ -184,8 +184,13 @@ el.spaceBtn?.addEventListener("contextmenu", (e) => {
         return;
       }
 
+      if (act === "invite") {
+          generateInviteCode(contextSpaceId);
+          return;
+      }
+
       if (act === "leave") {
-        leaveSpace(contextSpaceId);
+          leaveSpace(contextSpaceId);
       }
     });
 
@@ -2688,6 +2693,26 @@ async function uploadFiles(files) { //파일 업로드 함수
 
   return await res.json();
 }
+
+
+// 초대코드 생성
+async function generateInviteCode(spaceId) {
+    const res = await authFetch(`http://localhost:8080/spaces/${spaceId}/invite`, {
+        method: "POST"
+    });
+
+    if (!res.ok) {
+        alert("초대코드 생성 실패 (권한 없음)");
+        return;
+    }
+
+    const code = await res.text();
+
+    // 코드 표시 + 복사
+    const copied = await navigator.clipboard.writeText(code).then(() => true).catch(() => false);
+    alert(`초대코드: ${code}\n${copied ? "클립보드에 복사되었습니다." : "직접 복사해주세요."}`);
+}
+
 
 
 

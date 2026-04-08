@@ -1,4 +1,4 @@
-package com.stick.app.service;
+package com.stick.app.service.space;
 
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;

@@ -1,7 +1,10 @@
 package com.stick.app.controller;
 
 import com.stick.app.domain.space.Space;
-import com.stick.app.service.SpaceService;
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.service.space.SpaceMemberService;
+import com.stick.app.service.space.SpaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +17,7 @@ import java.util.List;
 public class SpaceController {
 
     private final SpaceService spaceService;
+    private final SpaceMemberService spaceMemberService;
 
     @PostMapping
     public Space createSpace(@RequestParam String name,
@@ -35,7 +39,14 @@ public class SpaceController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteSpace(@PathVariable Long id) {
+    public void deleteSpace(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        SpaceMember member = spaceMemberService.getSpaceMember(id, userId);
+        if (member.getRole() != SpaceRole.OWNER) {
+            throw new IllegalArgumentException("OWNER만 스페이스를 삭제할 수 있음");
+        }
         spaceService.deleteSpace(id);
     }
+
+
 }
