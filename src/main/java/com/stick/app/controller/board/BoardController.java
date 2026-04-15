@@ -1,4 +1,4 @@
-package com.stick.app.controller;
+package com.stick.app.controller.board;
 
 
 import com.stick.app.domain.board.Board;
@@ -8,7 +8,9 @@ import com.stick.app.dto.BoardUpdateRequest;
 import com.stick.app.service.BoardService;
 import com.stick.app.service.space.SpaceMemberService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,15 +43,26 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
-    public BoardResponse getBoardById(@PathVariable Long id){
+    public BoardResponse getBoardById(@PathVariable Long id, HttpServletRequest request){
+        Long userId = (Long) request.getAttribute("userId");
         Board board = boardService.getBoardById(id);
+        if(!spaceMemberService.isMember(board.getSpace().getId(), userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아님");
+        }
         return BoardResponse.from(board,0L,null);
     }
 
     @PatchMapping("/{id}")
     public BoardResponse updateBoard(@PathVariable Long id,
-                                     @RequestBody BoardUpdateRequest request){
+                                     @Valid @RequestBody BoardUpdateRequest request,
+                                     HttpServletRequest httpRequest){
+        Long userId = (Long) httpRequest.getAttribute("userId");
        Board board = boardService.updateBoard(id, request.getName(), request.getDescription());
+       if (!spaceMemberService.isMember(board.getSpace().getId(), userId)) {
+           throw new IllegalArgumentException("스페이스 멤버가 아님");
+       }
+       Board updated = boardService.updateBoard(id, request.getName(),
+               request.getDescription());
        return BoardResponse.from(board,0L, null);
     }
 

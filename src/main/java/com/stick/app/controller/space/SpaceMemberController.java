@@ -1,4 +1,4 @@
-package com.stick.app.controller;
+package com.stick.app.controller.space;
 
 import com.stick.app.domain.space.SpaceMember;
 import com.stick.app.domain.space.SpaceRole;

@@ -60,7 +60,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         //토큰에서 userId 꺼내서 request에 심어줌
         Long userId = jwtUtil.getUserId(token);
-        System.out.println("DEBUG userId: " + userId);
         request.setAttribute("userId", userId);
         filterChain.doFilter(request, response);
     }

@@ -1,4 +1,4 @@
-package com.stick.app.controller;
+package com.stick.app.controller.upload;
 
 import com.stick.app.dto.UploadFileResponse;
 import com.stick.app.service.UploadFileService;

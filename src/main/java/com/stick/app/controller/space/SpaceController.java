@@ -1,4 +1,4 @@
-package com.stick.app.controller;
+package com.stick.app.controller.space;
 
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;
@@ -34,7 +34,11 @@ public class SpaceController {
     }
 
     @GetMapping("/{id}")
-    public Space getSpaceById(@PathVariable Long id) {
+    public Space getSpaceById(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        if(!spaceMemberService.isMember(id, userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아님");
+        }
         return spaceService.getSpaceById(id);
     }
 

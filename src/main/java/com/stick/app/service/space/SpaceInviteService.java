@@ -18,13 +18,13 @@ public class SpaceInviteService {
 
     @Transactional
     public String createInvite(Long spaceId, Long userId) {
-        String code = UUID.randomUUID().toString();
+        String code = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
 
         SpaceInvite invite = SpaceInvite.builder()
                 .code(code)
                 .spaceId(spaceId)
                 .createdBy(userId)
-                .expiresAt(LocalDateTime.now().plusDays(7))
+                .expiresAt(LocalDateTime.now().plusDays(1))
                 .build();
 
         spaceInviteRepository.save(invite);
@@ -32,12 +32,13 @@ public class SpaceInviteService {
     }
 
     @Transactional
-    public void joinByCode(String code, Long userId) {
+    public Long joinByCode(String code, Long userId) {  // void → Long
         SpaceInvite invite = spaceInviteRepository.findByCode(code)
-                .orElseThrow(()-> new IllegalArgumentException("유효하지 않은 초대코드"));
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 초대코드"));
         if (invite.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("만료된 초대코드");
         }
         spaceMemberService.addMember(invite.getSpaceId(), userId, SpaceRole.MEMBER);
+        return invite.getSpaceId();  // spaceId 반환
     }
 }

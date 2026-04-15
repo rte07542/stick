@@ -6,6 +6,7 @@ import com.stick.user.dto.LoginRequest;
 import com.stick.user.dto.SignupRequest;
 import com.stick.user.dto.UserResponse;
 import com.stick.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public UserResponse login(@RequestBody LoginRequest request) {
+    public UserResponse login(@Valid @RequestBody LoginRequest request) {
         User user = userService.login(request.getLoginId(), request.getPassword());
         String token = jwtUtil.generateToken(user.getId());
         return UserResponse.from(user, token);

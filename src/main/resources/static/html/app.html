@@ -20,36 +20,24 @@
                     <img alt="" class="sideIcon" src="../img/sidebar-icon.svg">
                 </button>
             </div>
-            <div class="sideInfo">
-                <div class="sideControls">
-                    <label class="pill pillDrop" id="spacePill">
-                        <button aria-expanded="false" aria-haspopup="listbox" class="dropBtn" id="spaceBtn"
-                                type="button">
-                            <span id="spaceLabel"></span>
-                        </button>
-
-                        <div class="dropMenu hidden" id="spaceMenu" role="listbox" tabindex="-1"></div>
-                        <select hidden id="spaceSelect">불러오는 중...</select>
-                    </label>
-
-                    <span aria-hidden="true" class="segDiv"></span>
-                </div>
+            <div class="sideTabs">
+                <button class="sideTab active" id="tabBoard" type="button">보드</button>
+                <button class="sideTab" id="tabSpace" type="button">스페이스</button>
             </div>
-            <div class="sideMiddle">
+
+            <div class="sideMiddle" id="panelBoard">
                 <div id="boardList" class="boardList"></div>
                 <div class="sideSectionHead">
                     <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">
-                        보드 추가
+                        보드 추가 +
                     </button>
                 </div>
             </div>
-            <div class="sideFooter">
-                <button aria-label="내 계정" class="userCard" id="meBtn" type="button">
-                    <img alt="profile" class="avatar" id="meAvatar" src="../img/user-icon.svg">
 
-                    <div class="userMeta">
-                        <div class="userName" id="meName"></div>
-                    </div>
+            <div class="sideMiddle hidden" id="panelSpace">
+                <div id="spaceList" class="spaceList"></div>
+                <button type="button" id="addSpaceBtn" class="addBoardBtn">
+                    스페이스 추가 +
                 </button>
             </div>
 
@@ -214,7 +202,7 @@
 
 <div class="spaceContextMenu hidden" id="spaceContextMenu">
     <button type="button" class="spaceContextItem" data-act="invite">초대코드 생성</button>
-    <button type="button" class="spaceContextItem" data-act="settings">스페이스 설정</button>
+    <button type="button" class="spaceContextItem" data-act="settings">설정</button>
     <button type="button" class="spaceContextItem danger" data-act="leave">나가기</button>
 </div>
 
