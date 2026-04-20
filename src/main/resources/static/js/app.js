@@ -85,6 +85,8 @@ function bindEvents(){
   el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
   el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
 
+  el.meBtn?.addEventListener("click", openProfileModal);
+
   // 탭 전환
   el.tabBoard?.addEventListener("click", () => switchTab("board"));
   el.tabSpace?.addEventListener("click", () => switchTab("space"));
@@ -93,23 +95,21 @@ function bindEvents(){
   el.addSpaceBtn?.addEventListener("click", () => openSpaceOnboardingModal());
 
   // 스페이스 목록 액션 버튼
-  el.spaceList?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".spaceAction");
-    if (!btn) {
-      // 스페이스 이름 클릭 → 스페이스 전환
-      const nameBtn = e.target.closest(".spaceItemName");
-      if (nameBtn) {
-        setSpace(nameBtn.dataset.spaceId);
+    el.spaceList?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".spaceBtn");
+      if (btn) {
+        setSpace(btn.dataset.spaceId);
         switchTab("board");
       }
-      return;
-    }
-    const spaceId = btn.dataset.spaceId;
-    const act = btn.dataset.act;
-    if (act === "invite") generateInviteCode(spaceId);
-    if (act === "settings") openSpaceSettings(spaceId);
-    if (act === "leave") leaveSpace(spaceId);
-  });
+    });
+
+    el.spaceList?.addEventListener("contextmenu", (e) => {
+      const btn = e.target.closest(".spaceBtn");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openSpaceContextMenu(e.clientX, e.clientY, btn.dataset.spaceId);
+    });
 
   el.searchInput?.addEventListener("input", onSearchInput);
   el.searchClear?.addEventListener("click", onSearchClear);
@@ -242,7 +242,7 @@ el.composerPlusDock?.addEventListener("click", (e) => {
 
 }
 
-// =========================
+// =========================a
 // constants
 // =========================
 const SIDEBAR_MIN = 180;
@@ -939,7 +939,7 @@ function renderBoards() {
       : 0;
 
     btn.innerHTML = `
-      <span class="boardHash">#${escapeHTML(boardName)}</span>
+      <span class="boardHash"># ${escapeHTML(boardName)}</span>
       <span class="boardCount">${count}</span>
     `;
 
@@ -1368,6 +1368,12 @@ function onDocumentPointerDown(e){
   const isInsideBoardContextMenu = el.boardContextMenu?.contains(e.target);
   const isBoardContextTrigger = e.target.closest(".boardBtn");
   if (!isInsideBoardContextMenu && !isBoardContextTrigger) closeBoardContextMenu();
+
+  const isInsideSpaceContextMenu = el.spaceContextMenu?.contains(e.target);
+    const isSpaceContextTrigger = e.target.closest(".spaceBtn");
+    if (!isInsideSpaceContextMenu && !isSpaceContextTrigger) {
+      closeSpaceContextMenu();
+    }
 }
 
 function renderMemberPanel(){
@@ -2457,16 +2463,9 @@ function renderSpaceList() {
   el.spaceList.innerHTML = state.data.spaces.map(space => {
     const active = String(space.id) === String(state.spaceId) ? "is-active" : "";
     return `
-      <div class="spaceItem ${active}">
-        <button class="spaceItemName" type="button" data-space-id="${space.id}">
-          ${escapeHTML(space.name)}
-        </button>
-        <div class="spaceItemActions">
-          <button class="spaceAction" type="button" data-act="invite" data-space-id="${space.id}" title="초대코드">🔗</button>
-          <button class="spaceAction" type="button" data-act="settings" data-space-id="${space.id}" title="설정">⚙</button>
-          <button class="spaceAction danger" type="button" data-act="leave" data-space-id="${space.id}" title="나가기">나가기</button>
-        </div>
-      </div>
+      <button class="spaceBtn ${active}" type="button" data-space-id="${space.id}">
+        <span class="spacePrefix">● </span>${escapeHTML(space.name)}
+      </button>
     `;
   }).join("");
 }
@@ -2476,6 +2475,301 @@ function renderSpaceName() {
     if (el.tabBoard) {
         el.tabBoard.textContent = space?.name ?? "스페이스 없음";
     }
+}
+
+function openProfileModal() {
+  overlayMode = "modal";
+  openOverlay();
+  el.sidePanel?.classList.add("hidden");
+  if (!el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" id="profileDialog" style="width:min(400px,92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle">프로필</div>
+        <button class="dialogClose" type="button" id="profileCloseBtn">✕</button>
+      </div>
+      <div class="dialogBody">
+
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:#f9fafb;border-radius:14px;">
+
+          <div style="position:relative;cursor:pointer;" id="profileAvatarWrap">
+            <div class="avatar" id="profileAvatar"
+              style="width:48px;height:48px;font-size:18px;overflow:hidden;">?</div>
+            <div style="position:absolute;inset:0;border-radius:999px;background:rgba(0,0,0,.35);
+              display:flex;align-items:center;justify-content:center;
+              opacity:0;transition:opacity .15s;font-size:11px;font-weight:800;color:#fff;"
+              id="profileAvatarOverlay">변경</div>
+            <input type="file" id="profileAvatarInput" accept="image/*" hidden />
+          </div>
+
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#111827;" id="profileNameDisplay">로딩중...</div>
+            <div style="font-size:12px;font-weight:700;color:#6b7280;" id="profileEmailDisplay"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <label style="font-size:12px;font-weight:900;color:#6b7280;">닉네임</label>
+          <input id="profileNicknameInput" type="text"
+            style="height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;outline:none;background:#fff;"
+            placeholder="닉네임 입력"
+          />
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <button class="btn" type="button" id="profileChangePwBtn"
+            style="width:100%;height:44px;border:1px solid var(--line);border-radius:12px;font-size:14px;font-weight:700;">
+            비밀번호 변경
+          </button>
+        </div>
+
+        <div class="dialogActions" style="justify-content:space-between;">
+          <button class="btn" type="button" id="profileLogoutBtn"
+            style="border:1px solid rgba(180,35,24,.18);color:#b42318;background:#fff5f5;">
+            로그아웃
+          </button>
+          <button class="btn primary" type="button" id="profileSaveBtn">저장</button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  const dialog = qs("#profileDialog");
+
+  loadMyProfile(dialog);
+
+  qs("#profileCloseBtn", dialog)?.addEventListener("click", closeOverlay);
+  qs("#profileChangePwBtn", dialog)?.addEventListener("click", openChangePasswordModal);
+
+  qs("#profileSaveBtn", dialog)?.addEventListener("click", async () => {
+    const nickname = qs("#profileNicknameInput", dialog)?.value.trim();
+    const password = qs("#profilePasswordInput", dialog)?.value.trim();
+
+    if (!nickname) {
+      alert("닉네임을 입력해.");
+      return;
+    }
+
+    try {
+      await updateMyProfile({ nickname, password: password || null });
+      alert("저장됐어.");
+      closeOverlay();
+      syncMyProfile();
+    } catch (err) {
+      console.error(err);
+      alert("저장에 실패했어.");
+    }
+  });
+
+  qs("#profileLogoutBtn", dialog)?.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("loginUserId");
+    window.location.href = "/";
+  });
+
+  const avatarWrap = qs("#profileAvatarWrap", dialog);
+  const avatarOverlay = qs("#profileAvatarOverlay", dialog);
+  const avatarInput = qs("#profileAvatarInput", dialog);
+
+  avatarWrap?.addEventListener("mouseenter", () => avatarOverlay.style.opacity = "1");
+  avatarWrap?.addEventListener("mouseleave", () => avatarOverlay.style.opacity = "0");
+
+  avatarWrap?.addEventListener("click", () => avatarInput?.click());
+
+  avatarInput?.addEventListener("change", async () => {
+    const file = avatarInput.files?.[0];
+    if (!file) return;
+
+    try {
+      const uploaded = await uploadFiles([file]);
+      const url = uploaded?.[0]?.url;
+      if (!url) throw new Error("url 없음");
+
+      await updateMyAvatar(url);
+
+      // 모달 아바타 갱신
+      const avatar = qs("#profileAvatar", dialog);
+      if (avatar) {
+        avatar.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;" />`;
+      }
+
+      // 사이드바 하단 아바타 갱신
+      const sideAvatar = qs("#meAvatar");
+      if (sideAvatar) {
+        sideAvatar.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;" />`;
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("이미지 업로드에 실패했어.");
+    }
+
+    avatarInput.value = "";
+  });
+}
+
+async function updateMyAvatar(url) {
+  const res = await authFetch("http://localhost:8080/users/me/avatar", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ profileImageUrl: url })
+  });
+
+  if (!res.ok) throw new Error("아바타 업데이트 실패");
+  return await res.json();
+}
+
+function openChangePasswordModal() {
+  overlayMode = "modal";
+  openOverlay();
+  if (!el.modalRoot) return;
+
+  el.modalRoot.innerHTML = `
+    <div class="dialog" id="changePwDialog" style="width:min(380px,92vw);">
+      <div class="dialogHead">
+        <div class="dialogTitle">비밀번호 변경</div>
+        <button class="dialogClose" type="button" id="changePwCloseBtn">✕</button>
+      </div>
+      <div class="dialogBody">
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:12px;font-weight:900;color:#6b7280;">현재 비밀번호</label>
+            <input id="currentPwInput" type="password"
+              style="height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;outline:none;background:#fff;"
+              placeholder="현재 비밀번호"
+            />
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:12px;font-weight:900;color:#6b7280;">새 비밀번호</label>
+            <input id="newPwInput" type="password"
+              style="height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;outline:none;background:#fff;"
+              placeholder="새 비밀번호"
+            />
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <label style="font-size:12px;font-weight:900;color:#6b7280;">비밀번호 확인</label>
+            <input id="confirmPwInput" type="password"
+              style="height:44px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font-size:14px;font-weight:700;outline:none;background:#fff;"
+              placeholder="새 비밀번호 재입력"
+            />
+          </div>
+
+        </div>
+
+        <div class="dialogActions">
+          <button class="btn" type="button" id="changePwCancelBtn">취소</button>
+          <button class="btn primary" type="button" id="changePwSaveBtn">변경</button>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  const dialog = qs("#changePwDialog");
+
+  qs("#changePwCloseBtn", dialog)?.addEventListener("click", () => openProfileModal());
+  qs("#changePwCancelBtn", dialog)?.addEventListener("click", () => openProfileModal());
+
+  qs("#changePwSaveBtn", dialog)?.addEventListener("click", async () => {
+    const currentPw = qs("#currentPwInput", dialog)?.value.trim();
+    const newPw = qs("#newPwInput", dialog)?.value.trim();
+    const confirmPw = qs("#confirmPwInput", dialog)?.value.trim();
+
+    if (!currentPw || !newPw || !confirmPw) {
+      alert("모든 항목을 입력해.");
+      return;
+    }
+
+    if (newPw !== confirmPw) {
+      alert("새 비밀번호가 일치하지 않아.");
+      qs("#confirmPwInput", dialog)?.focus();
+      return;
+    }
+
+    if (newPw.length < 6) {
+      alert("비밀번호는 6자 이상이어야 해.");
+      qs("#newPwInput", dialog)?.focus();
+      return;
+    }
+
+    try {
+      await updateMyPassword({ currentPassword: currentPw, newPassword: newPw });
+      alert("비밀번호가 변경됐어.");
+      openProfileModal();
+    } catch (err) {
+      console.error(err);
+      alert("비밀번호 변경에 실패했어.");
+    }
+  });
+
+  qs("#currentPwInput", dialog)?.focus();
+}
+
+async function updateMyPassword({ currentPassword, newPassword }) {
+  const res = await authFetch("http://localhost:8080/users/me/password", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+
+  if (!res.ok) throw new Error("비밀번호 변경 실패");
+  return await res.json();
+}
+
+async function loadMyProfile(dialog) {
+  try {
+    const res = await authFetch("http://localhost:8080/members/me", {
+      credentials: "include"
+    });
+    if (!res.ok) throw new Error();
+
+    const me = await res.json();
+
+    const avatar = qs("#profileAvatar", dialog);
+    const nameDisplay = qs("#profileNameDisplay", dialog);
+    const emailDisplay = qs("#profileEmailDisplay", dialog);
+    const nicknameInput = qs("#profileNicknameInput", dialog);
+
+    if (avatar) avatar.textContent = (me.nickname ?? me.email ?? "?")[0].toUpperCase();
+    if (nameDisplay) nameDisplay.textContent = me.nickname ?? me.email ?? "알 수 없음";
+    if (emailDisplay) emailDisplay.textContent = me.email ?? "";
+    if (nicknameInput) nicknameInput.value = me.nickname ?? "";
+  } catch (err) {
+    console.error("프로필 로딩 실패:", err);
+  }
+}
+
+async function updateMyProfile({ nickname, password }) {
+  const body = { nickname };
+  if (password) body.password = password;
+
+  const res = await authFetch("http://localhost:8080/members/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) throw new Error("프로필 수정 실패");
+  return await res.json();
+}
+
+function syncMyProfile() {
+  authFetch("http://localhost:8080/members/me", { credentials: "include" })
+    .then(r => r.json())
+    .then(me => {
+      if (qs("#meAvatar")) qs("#meAvatar").textContent = (me.nickname ?? me.email ?? "?")[0].toUpperCase();
+      if (qs("#meName")) qs("#meName").textContent = me.nickname ?? me.email ?? "알 수 없음";
+    })
+    .catch(() => {});
 }
 
 
@@ -2521,6 +2815,7 @@ function init() {
   bindEvents();
   bindColorPicker(el.quickColors);
   bindColorPicker(el.quickColorsDock);
+  syncMyProfile();
 
   loadSidebarW();
 

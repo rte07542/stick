@@ -102,7 +102,7 @@ body{
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+  padding : 8px 0;
 }
 
 .boardBtn{
@@ -110,26 +110,26 @@ body{
   border: none;
   background: transparent;
   text-align: left;
-  padding: 10px 10px;
-  border-radius: 12px;
+  padding: 10px 8px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 4px;
   align-items: center;
 }
 
 .boardBtn:hover{
-  background: #f3f4f6;
+  background: rgb(17, 24, 39, .04);
 }
 
 .boardBtn.active .boardHash{
   font-weight: 750;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .boardHash{
-  font-weight: 500;
+  font-weight: 700;
   font-size: 14px;
 }
 
@@ -167,6 +167,11 @@ body{
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.layout.sidebar-collapsed .sideTabs,
+.layout.sidebar-collapsed .sideMiddle {
+    display: none;
 }
 
 .search{
@@ -446,11 +451,12 @@ mark{
 }
 
 .quickInput{
+  flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
   resize: none;
-  width: 100%;
   height: 28px;
   line-height: 20px;
   min-height: 28px;
@@ -490,6 +496,8 @@ mark{
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
 .color-pick{
@@ -995,7 +1003,7 @@ mark{
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #fff;
+  background: transparent;
 }
 
 .meRow{
@@ -1072,7 +1080,7 @@ mark{
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   flex: 0 0 auto;
 }
 
@@ -1317,6 +1325,10 @@ mark{
   height: 25px;
   width: auto;
   display: block;
+}
+
+.app .stickLogo {
+    height: 15px;
 }
 
 .memberPanel{
@@ -1569,6 +1581,27 @@ mark{
   outline: none;
 }
 
+.spaceBtn {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    cursor: pointer;
+    padding: 10px 8px;
+    border-radius: 8px;
+}
+
+.spaceBtn:hover {
+    background: rgba(17,24,39,.04);
+}
+
+.spaceBtn.is-active {
+    background: rgba(17,24,39,.06);
+}
+
 /* =========================
    Mobile
    ========================= */
@@ -1771,27 +1804,33 @@ mark{
 
 /* 탭 */
 .sideTabs {
-  display: flex;
-  border-bottom: 1px solid rgba(17,24,39,.08);
-  padding: 0 8px;
+    display: flex;
+    padding: 6px;
+    border-radius: 10px;
+    gap: 2px;
+    margin-bottom: 8px;
+    border-bottom: none;
 }
 
 .sideTab {
-  flex: 1;
-  padding: 10px 0;
-  border: 0;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 700;
-  color: #6b7280;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+    flex: 1;
+    padding: 6px 0;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6b7280;
+    cursor: pointer;
+    margin-bottom: 0;
 }
 
 .sideTab.active {
-  color: #111827;
-  border-bottom-color: #111827;
+    background: #ffffff;
+    color: #111827;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+    border-color: transparent;
+    margin-bottom: 0;
 }
 
 /* 스페이스 목록 */
