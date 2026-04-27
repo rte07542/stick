@@ -2,13 +2,11 @@ const qs = (sel, root = document) => root.querySelector(sel);
 
 const STORAGE_KEYS = {
   role: "role",
-  inviteCode: "inviteCode",
   loginUserId: "loginUserId",
   loginUserNickname: "loginUserNickname"
 };
 
 const ROLE = {
-  guestReadonly: "guest-readonly",
   member: "member"
 };
 
@@ -17,46 +15,10 @@ const ROUTES = {
   home: "./index.html"
 };
 
-function setAriaHidden(el, hidden) {
-  el.setAttribute("aria-hidden", hidden ? "true" : "false");
-}
-
-function openModal(overlayEl) {
-  if (!overlayEl) return;
-  overlayEl.classList.remove("hidden");
-  setAriaHidden(overlayEl, false);
-
-  const firstFocus = qs("#loginId");
-  firstFocus?.focus();
-}
-
-function closeModal(overlayEl) {
-  if (!overlayEl) return;
-  overlayEl.classList.add("hidden");
-  setAriaHidden(overlayEl, true);
-}
-
 function initHome() {
-  const enterBtn = qs("#enterBtn");
-  const inviteInput = qs("#inviteCode");
-
-  const overlay = qs("[data-login-overlay]");
-  const openBtn = qs("[data-login-open]");
-  const closeBtn = qs("[data-login-close]");
-
   const loginIdInput = qs("#loginId");
   const loginPwInput = qs("#loginPw");
   const loginSubmitBtn = qs("#loginSubmitBtn");
-
-  function onEnter() {
-    const code = inviteInput?.value.trim();
-    if (!code) return;
-
-    localStorage.setItem(STORAGE_KEYS.role, ROLE.guestReadonly);
-    localStorage.setItem(STORAGE_KEYS.inviteCode, code);
-
-    location.href = ROUTES.app;
-  }
 
   async function onLogin() {
     const loginId = loginIdInput?.value.trim();
@@ -77,15 +39,12 @@ function initHome() {
     loginSubmitBtn.disabled = true;
 
     try {
-      const response = await authFetch("/users/login", {
+      const response = await fetch("/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          loginId,
-          password
-        })
+        body: JSON.stringify({ loginId, password })
       });
 
       if (!response.ok) {
@@ -109,34 +68,15 @@ function initHome() {
     }
   }
 
-  function onEsc(e) {
-    if (e.key !== "Escape") return;
-    if (!overlay || overlay.classList.contains("hidden")) return;
-    closeModal(overlay);
-  }
-
-  function onOverlayClick(e) {
-    if (e.target === overlay) closeModal(overlay);
-  }
-
-  function authFetch(url, options = {}) {
-      const token = localStorage.getItem("token");
-      return fetch(url, {
-          ...options,
-          headers: {
-              ...(options.headers || {}),
-              "Authorization": `Bearer ${token}`
-          }
-      });
-  }
-
-  enterBtn?.addEventListener("click", onEnter);
-  openBtn?.addEventListener("click", () => openModal(overlay));
-  closeBtn?.addEventListener("click", () => closeModal(overlay));
   loginSubmitBtn?.addEventListener("click", onLogin);
 
-  window.addEventListener("keydown", onEsc);
-  overlay?.addEventListener("click", onOverlayClick);
+  loginPwInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") onLogin();
+  });
+
+  loginIdInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") loginPwInput?.focus();
+  });
 }
 
 document.addEventListener("DOMContentLoaded", initHome);

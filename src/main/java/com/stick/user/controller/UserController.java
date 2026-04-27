@@ -6,8 +6,11 @@ import com.stick.user.dto.LoginRequest;
 import com.stick.user.dto.SignupRequest;
 import com.stick.user.dto.UserResponse;
 import com.stick.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -37,5 +40,29 @@ public class UserController {
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable Long id) {
         return UserResponse.from(userService.getUserById(id));
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Void> checkLoginId(@RequestParam String loginId) {
+        if (!userService.isLoginIdAvailable(loginId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/me/avatar")
+    public UserResponse updateAvatar(@RequestBody java.util.Map<String, String> body,
+                                     HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        String url = body.get("profileImageUrl");
+        return UserResponse.from(userService.updateAvatar(userId, url));
+    }
+
+    @PatchMapping("/me")
+    public UserResponse updateMe(@RequestBody java.util.Map<String, String> body,
+                                 HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        String nickname = body.get("nickname");
+        return UserResponse.from(userService.updateNickname(userId, nickname));
     }
 }

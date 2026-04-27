@@ -84,6 +84,11 @@ function initSignup() {
       return;
     }
 
+    if (qs("#idError")?.textContent) {
+      qs("#signupId")?.focus();
+      return;
+    }
+
     if (!password) {
       alert("비밀번호를 입력해.");
       signupPw?.focus();
@@ -148,6 +153,51 @@ function initSignup() {
     if (!overlay || isHidden(overlay)) return;
     closeModal();
   }
+
+  let idCheckTimer = null;
+
+  function validateIdFormat(value) {
+    const idError = qs("#idError");
+    if (!idError) return false;
+
+    if (!value) {
+      idError.textContent = "";
+      return false;
+    }
+
+    if (value.length < 4) {
+      idError.textContent = "4글자 이상 쓰시오.";
+      return false;
+    }
+
+    idError.textContent = "";
+    return true;
+  }
+
+  async function checkIdDuplicate(value) {
+    const idError = qs("#idError");
+    try {
+      const res = await fetch(`/users/check?loginId=${encodeURIComponent(value)}`);
+      if (!res.ok) {
+        idError.textContent = "중복된 아이디 입니다.";
+        return;
+      }
+      idError.textContent = "";
+    } catch {
+      // 네트워크 오류 시 서버에서 최종 판단
+    }
+  }
+
+  signupId?.addEventListener("input", () => {
+    const value = signupId.value.trim();
+    clearTimeout(idCheckTimer);
+
+    if (!validateIdFormat(value)) return;
+
+    idCheckTimer = setTimeout(() => {
+      checkIdDuplicate(value);
+    }, 500);
+  });
 
   agreeTerms.addEventListener("change", syncSignupEnabled);
   signupBtn.addEventListener("click", onSignup);

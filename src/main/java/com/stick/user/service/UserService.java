@@ -1,5 +1,8 @@
 package com.stick.user.service;
 
+import com.stick.app.domain.space.SpaceMember;
+import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.repository.space.SpaceMemberRepository;
 import com.stick.user.domain.User;
 import com.stick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final SpaceMemberRepository spaceMemberRepository;
 
     public User signup(String loginId, String password, String nickname, boolean ageConfirmed) {
         if (!ageConfirmed) {
@@ -48,5 +52,21 @@ public class UserService {
     public User getUserById(Long userId){
         return userRepository.findById(userId)
                 .orElseThrow(()->new IllegalArgumentException("없는 유저"));
+    }
+
+    public boolean isLoginIdAvailable(String loginId) {
+        return !userRepository.existsByLoginId(loginId);
+    }
+
+    public User updateAvatar(Long userId, String profileImageUrl) {
+        User user = getUserById(userId);
+        user.setProfileImageUrl(profileImageUrl);
+        return userRepository.save(user);
+    }
+
+    public User updateNickname(Long userId, String nickname) {
+        User user = getUserById(userId);
+        user.setNickname(nickname);
+        return userRepository.save(user);
     }
 }

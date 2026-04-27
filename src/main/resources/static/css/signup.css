@@ -220,3 +220,13 @@
 @media (max-height: 700px){
   :root{ --signup-lift-y: -3vh; }
 }
+
+/* 아이디 입력 오류*/
+.fieldError {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b42318;
+  margin-top: 4px;
+  display: block;
+  min-height: 16px;
+}

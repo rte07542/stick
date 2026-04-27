@@ -51,4 +51,28 @@ public class SpaceMemberService {
         return spaceMemberRepository.findBySpaceId(spaceId);
     }
 
+    // OWNER 또는 ADMIN인지 확인
+    public boolean isAdminOrOwner(Long spaceId, Long userId) {
+        return spaceMemberRepository.findBySpaceIdAndUserId(spaceId, userId)
+                .map(m-> m.getRole() == SpaceRole.OWNER || m.getRole() == SpaceRole.ADMIN)
+                .orElse(false);
+    }
+
+    // 멤버 추방
+    public void removeMember(Long spaceId, Long userId) {
+        SpaceMember member = spaceMemberRepository.findBySpaceIdAndUserId(spaceId, userId)
+                .orElseThrow(()-> new IllegalArgumentException("해당 멤버 없음"));
+        spaceMemberRepository.delete(member);
+    }
+
+    //역할 변경
+    public SpaceMember updateMemberRole(Long spaceId, Long targetUserId, SpaceRole newRole) {
+        SpaceMember member = spaceMemberRepository.findBySpaceIdAndUserId(spaceId, targetUserId)
+                .orElseThrow(()->new IllegalArgumentException("해당 멤버 없음"));
+        member.setRole(newRole);
+        return spaceMemberRepository.save(member);
+    }
+
+
+
 }

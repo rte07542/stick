@@ -14,6 +14,7 @@ public class UserResponse {
     private String nickname;
     private LocalDateTime createdAt;
     private String token;
+    private String profileImageUrl;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -21,6 +22,7 @@ public class UserResponse {
                 .loginId(user.getLoginId())
                 .nickname(user.getNickname())
                 .createdAt(user.getCreatedAt())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 
@@ -31,6 +33,7 @@ public class UserResponse {
                 .nickname(user.getNickname())
                 .createdAt(user.getCreatedAt())
                 .token(token)
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 }

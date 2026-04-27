@@ -10,7 +10,6 @@ import com.stick.app.service.space.SpaceMemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,15 +22,13 @@ public class BoardController {
     private final SpaceMemberService spaceMemberService;
 
     @PostMapping
-    public Board createBoard(@RequestParam Long spaceId,
-                             @RequestParam String name,
-                             @RequestParam(required = false) String description,
-                             HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-        if (!spaceMemberService.isMember(spaceId, userId)) {
+    public Board createBoard(@RequestBody BoardCreateRequest request,
+                             HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("userId");
+        if(!spaceMemberService.isAdminOrOwner(request.getSpaceId(), userId)) {
             throw new IllegalArgumentException("스페이스 멤버가 아님");
         }
-        return boardService.createBoard(name, spaceId, description);
+        return boardService.createBoard(request.getName(), request.getSpaceId(), request.getDescription());
     }
 
     @GetMapping("/space/{spaceId}")
@@ -57,22 +54,22 @@ public class BoardController {
                                      @Valid @RequestBody BoardUpdateRequest request,
                                      HttpServletRequest httpRequest){
         Long userId = (Long) httpRequest.getAttribute("userId");
-       Board board = boardService.updateBoard(id, request.getName(), request.getDescription());
-       if (!spaceMemberService.isMember(board.getSpace().getId(), userId)) {
-           throw new IllegalArgumentException("스페이스 멤버가 아님");
-       }
-       Board updated = boardService.updateBoard(id, request.getName(),
-               request.getDescription());
-       return BoardResponse.from(board,0L, null);
+        Board board = boardService.getBoardById(id);
+        if (!spaceMemberService.isAdminOrOwner(board.getSpace().getId(), userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아님");
+        }
+        Board updated = boardService.updateBoard(id, request.getName(), request.getDescription());
+        return BoardResponse.from(updated, 0L, null);
     }
 
     @DeleteMapping("/{id}")
     public void deleteBoard(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         Long spaceId = boardService.getBoardById(id).getSpace().getId();
-        if (!spaceMemberService.isMember(spaceId, userId)) {
+        if (!spaceMemberService.isAdminOrOwner(spaceId, userId)) {
             throw new IllegalArgumentException("스페이스 멤버가 아님");
         }
         boardService.deleteBoard(id);
     }
+
 }

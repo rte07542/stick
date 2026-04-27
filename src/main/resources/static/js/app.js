@@ -2082,10 +2082,12 @@ async function requestUpdateBoard(boardId, name, description = "") {
     description
   });
 
-  const res = await authFetch(`http://localhost:8080/boards/${boardId}?${params.toString()}`, {
-    method: "PUT",
-    credentials: "include"
-  });
+  const res = await authFetch(`http://localhost:8080/boards/${boardId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ name, description })
+    });
 
   if (!res.ok) {
     const text = await res.text();
@@ -2726,7 +2728,7 @@ async function updateMyPassword({ currentPassword, newPassword }) {
 
 async function loadMyProfile(dialog) {
   try {
-    const res = await authFetch("http://localhost:8080/members/me", {
+    const res = await authFetch(`http://localhost:8080/users/${state.me}`, {
       credentials: "include"
     });
     if (!res.ok) throw new Error();
@@ -2738,9 +2740,15 @@ async function loadMyProfile(dialog) {
     const emailDisplay = qs("#profileEmailDisplay", dialog);
     const nicknameInput = qs("#profileNicknameInput", dialog);
 
-    if (avatar) avatar.textContent = (me.nickname ?? me.email ?? "?")[0].toUpperCase();
-    if (nameDisplay) nameDisplay.textContent = me.nickname ?? me.email ?? "알 수 없음";
-    if (emailDisplay) emailDisplay.textContent = me.email ?? "";
+    if (avatar) {
+      if (me.profileImageUrl) {
+        avatar.innerHTML = `<img src="${me.profileImageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;" />`;
+      } else {
+        avatar.textContent = (me.nickname ?? me.loginId ?? "?")[0].toUpperCase();
+      }
+    }
+    if (nameDisplay) nameDisplay.textContent = me.nickname ?? me.loginId ?? "알 수 없음";
+    if (emailDisplay) emailDisplay.textContent = me.loginId ?? "";
     if (nicknameInput) nicknameInput.value = me.nickname ?? "";
   } catch (err) {
     console.error("프로필 로딩 실패:", err);
@@ -2751,7 +2759,7 @@ async function updateMyProfile({ nickname, password }) {
   const body = { nickname };
   if (password) body.password = password;
 
-  const res = await authFetch("http://localhost:8080/members/me", {
+  const res = await authFetch("http://localhost:8080/users/me", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -2763,11 +2771,18 @@ async function updateMyProfile({ nickname, password }) {
 }
 
 function syncMyProfile() {
-  authFetch("http://localhost:8080/members/me", { credentials: "include" })
+  authFetch(`http://localhost:8080/users/${state.me}`, { credentials: "include" })
     .then(r => r.json())
     .then(me => {
-      if (qs("#meAvatar")) qs("#meAvatar").textContent = (me.nickname ?? me.email ?? "?")[0].toUpperCase();
-      if (qs("#meName")) qs("#meName").textContent = me.nickname ?? me.email ?? "알 수 없음";
+      const sideAvatar = qs("#meAvatar");
+      if (sideAvatar) {
+        if (me.profileImageUrl) {
+          sideAvatar.innerHTML = `<img src="${me.profileImageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:999px;" />`;
+        } else {
+          sideAvatar.textContent = (me.nickname ?? me.loginId ?? "?")[0].toUpperCase();
+        }
+      }
+      if (qs("#meName")) qs("#meName").textContent = me.nickname ?? me.loginId ?? "알 수 없음";
     })
     .catch(() => {});
 }
