@@ -25,7 +25,7 @@ html,body{
 
 body{
   margin: 0;
-  background: #F6F5F3;
+  background: #fdf8f2;
   color: var(--text);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
 }
@@ -63,7 +63,7 @@ body{
 
 .sidebar{
   overflow: hidden;
-  background: #ECEAE6;
+  background: #fef5e5;
   padding: 12px;
   min-height: 0;
   display: flex;
@@ -337,23 +337,23 @@ body{
 }
 
 .composerBar.cream{
-  background: rgba(249,246,241,.95);
+  background: #faf1e1;
 }
 
 .composerBar.blue{
-  background: rgba(191,212,234,.90);
+  background: #d4deea;
 }
 
 .composerBar.sage{
-  background: rgba(199,220,212,.90);
+  background: #b8d1cf;
 }
 
 .composerBar.coral{
-  background: rgba(217,165,135,.90);
+  background: #f9cca3;
 }
 
 .composerBar.lavender{
-  background: rgba(215,203,230,.90);
+  background: #d6cae3;
 }
 
 mark{
@@ -468,27 +468,27 @@ mark{
 }
 
 .dialog.noteDialog.cream{
-  background: #F9F6F1;
+  background: #faf1e1;
   color: #111827;
 }
 
 .dialog.noteDialog.blue{
-  background: #BFD4EA;
+  background: #d4deea;
   color: #111827;
 }
 
 .dialog.noteDialog.sage{
-  background: #C7DCD4;
+  background: #b8d1cf;
   color: #111827;
 }
 
 .dialog.noteDialog.coral{
-  background: #D9A587;
+  background: #f9cca3;
   color: #111827;
 }
 
 .dialog.noteDialog.lavender{
-  background: #D7CBE6;
+  background: #d6cae3;
   color: #111827;
 }
 
@@ -516,24 +516,24 @@ mark{
 }
 
 .swatch.white{
-  background: #F9F6F1;
+  background: #faf1e1;
   border: 2px solid rgba(0,0,0,.15);
 }
 
 .swatch.blue{
-  background: #BFD4EA;
+  background: #d4deea;
 }
 
 .swatch.green{
-  background: #C7DCD4;
+  background: #b8d1cf;
 }
 
 .swatch.coral{
-  background: #D49A78;
+  background: #f9cca3;
 }
 
 .swatch.purple{
-  background: #D7CBE6;
+  background: #d6cae3;
 }
 
 .swatch.selected{
@@ -696,27 +696,27 @@ mark{
 }
 
 .note.cream{
-  background: #F9F6F1;
+  background: #faf1e1;
   color: #111827;
 }
 
 .note.blue{
-  background: #BFD4EA;
+  background: #d4deea;
   color: #111827;
 }
 
 .note.sage{
-  background: #C7DCD4;
+  background: #b8d1cf;
   color: #111827;
 }
 
 .note.coral{
-  background: #D9A587;
+  background: #f9cca3;
   color: #111827;
 }
 
 .note.lavender{
-  background: #D7CBE6;
+  background: #d6cae3;
   color: #111827;
 }
 
@@ -846,7 +846,7 @@ mark{
 
 .splitter{
   cursor: col-resize;
-  background: #ECEAE6;
+  background: #F0E8DA;
   position: relative;
 }
 
@@ -988,7 +988,9 @@ mark{
 }
 
 .btn.primary{
-  border-color: rgba(17,24,39,.25);
+  border-color: #fdaf54;
+  background : #fdaf54;
+  color : #ffffff;
 }
 
 .btn.danger{
@@ -1337,7 +1339,7 @@ mark{
   right: -170px;
   width: 170px;
   height: calc(100vh - var(--topbar-h));
-  background: #ECEAE6;
+  background: #F0E8DA;
   transition: right .25s ease;
   z-index: 150;
   display: flex;
@@ -1372,7 +1374,7 @@ mark{
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  background: #F6F5F3;
+  background: #FFF8EE;
   justify-content: space-between;
 }
 
@@ -1826,8 +1828,8 @@ mark{
 }
 
 .sideTab.active {
-    background: #ffffff;
-    color: #111827;
+    background: #F97316;
+    color: #ffffff;
     box-shadow: 0 1px 3px rgba(0,0,0,.12);
     border-color: transparent;
     margin-bottom: 0;

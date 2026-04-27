@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class SpaceMemberResponse extends BaseEntity {
+public class SpaceMemberResponse{
     private Long id;
     private Long spaceId;
     private Long userId;

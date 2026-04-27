@@ -59,4 +59,34 @@ public class SpaceMemberController {
         );
     }
 
+    @PatchMapping("/{targetUserId}/role")
+    public SpaceMemberResponse updateRole(@PathVariable Long spaceId,
+                                          @PathVariable Long targetUserId,
+                                          @RequestParam SpaceRole role,
+                                          HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        SpaceMember me = spaceMemberService.getSpaceMember(spaceId, userId);
+        if (me.getRole() != SpaceRole.OWNER) {
+            throw new IllegalArgumentException("OWNER만 역할을 변경할 수 있음");
+        }
+        return SpaceMemberResponse.from(spaceMemberService.updateMemberRole(spaceId, targetUserId, role));
+    }
+
+    @DeleteMapping("/{targetUserId}")
+    public void removeMember(@PathVariable Long spaceId,
+                             @PathVariable Long targetUserId,
+                             HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        SpaceMember me = spaceMemberService.getSpaceMember(spaceId, userId);
+        SpaceMember target = spaceMemberService.getSpaceMember(spaceId, userId);
+
+        if (me.getRole() == SpaceRole.MEMBER) {
+            throw new IllegalArgumentException("권한 없음");
+        }
+        if (me.getRole() == SpaceRole.ADMIN && target.getRole() != SpaceRole.MEMBER) {
+            throw new IllegalArgumentException("ADMIN은 MEMBER만 추방할 수 있음");
+        }
+        spaceMemberService.removeMember(spaceId, targetUserId);
+    }
+
 }

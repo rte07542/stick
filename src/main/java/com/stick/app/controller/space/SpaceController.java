@@ -3,6 +3,7 @@ package com.stick.app.controller.space;
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;
 import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.dto.SpaceMemberResponse;
 import com.stick.app.service.space.SpaceMemberService;
 import com.stick.app.service.space.SpaceService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,17 +56,20 @@ public class SpaceController {
 
     // 멤버 목록 조회
     @GetMapping("/{id}/members")
-    public List<SpaceMember> getMembers(@PathVariable Long id, HttpServletRequest request) {
+    public List<SpaceMemberResponse> getMembers(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         if (!spaceMemberService.isMember(id, userId)) {
             throw new IllegalArgumentException("스페이스 멤버가 아님");
         }
-        return spaceMemberService.getMembersBySpaceId(id);
+        return spaceMemberService.getMembersBySpaceId(id)
+                .stream()
+                .map(SpaceMemberResponse::from)
+                .toList();
     }
 
     //역할 변경 (OWNER만)
     @PatchMapping("/{id}/members/{targetUserId}/role")
-    public SpaceMember updateRole(@PathVariable Long id,
+    public SpaceMemberResponse updateRole(@PathVariable Long id,
                                   @PathVariable Long targetUserId,
                                   @RequestBody SpaceRole role,
                                   HttpServletRequest request) {
@@ -74,7 +78,7 @@ public class SpaceController {
         if (me.getRole() != SpaceRole.OWNER) {
             throw new IllegalArgumentException("OWNER만 역할을 변경할 수 있음.");
         }
-        return spaceMemberService.updateMemberRole(id, targetUserId, role);
+        return SpaceMemberResponse.from(spaceMemberService.updateMemberRole(id, targetUserId, role));
     }
 
     //멤버 추방
