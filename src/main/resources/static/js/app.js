@@ -78,168 +78,28 @@ boardContextMenu: qs("#boardContextMenu"),
 
 };
 
-// =========================
-// bind events
-// =========================
-function bindEvents(){
-  el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
-  el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
+// dock 이미지 상태
+let dockImages = []; // { file, url } 배열
 
-  el.meBtn?.addEventListener("click", openProfileModal);
+async function handleGenerateInviteCode(spaceId) {
+  const modal = qs("#inviteModal");
+  const display = qs("#inviteCodeDisplay");
+  if (!modal || !display) return;
 
-  // 탭 전환
-  el.tabBoard?.addEventListener("click", () => switchTab("board"));
-  el.tabSpace?.addEventListener("click", () => switchTab("space"));
+  display.textContent = "...";
+  modal.classList.remove("hidden");
 
-  // 스페이스 추가 버튼
-  el.addSpaceBtn?.addEventListener("click", () => openSpaceOnboardingModal());
-
-  // 스페이스 목록 액션 버튼
-    el.spaceList?.addEventListener("click", (e) => {
-      const btn = e.target.closest(".spaceBtn");
-      if (btn) {
-        setSpace(btn.dataset.spaceId);
-        switchTab("board");
-      }
+  try {
+    const res = await authFetch(`/spaces/${spaceId}/invite`, {
+      method: "POST",
+      credentials: "include"
     });
-
-    el.spaceList?.addEventListener("contextmenu", (e) => {
-      const btn = e.target.closest(".spaceBtn");
-      if (!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      openSpaceContextMenu(e.clientX, e.clientY, btn.dataset.spaceId);
-    });
-
-  el.searchInput?.addEventListener("input", onSearchInput);
-  el.searchClear?.addEventListener("click", onSearchClear);
-
-  el.quickInput?.addEventListener("keydown", onQuickKeydown);
-  el.quickInputDock?.addEventListener("keydown", onQuickKeydownDock);
-
-el.composerPlus?.addEventListener("click", (e) => {
-  e.stopPropagation();
-  openNewMemoModal();
-});
-
-el.composerPlusDock?.addEventListener("click", (e) => {
-  e.stopPropagation();
-  openNewMemoModal();
-});
-
-  el.composerFile?.addEventListener("change", () => onComposerFiles(el.composerFile));
-  el.composerFileDock?.addEventListener("change", () => onComposerFiles(el.composerFileDock));
-
-  el.panelClose?.addEventListener("click", closeSidePanel);
-
-  el.overlay?.addEventListener("pointerdown", onOverlayPointerDown);
-  window.addEventListener("keydown", onGlobalKeydown);
-  document.addEventListener("pointerdown", onDocumentPointerDown);
-
-  el.toggleSidebarBtn?.addEventListener("click", onToggleSidebar);
-  el.splitter?.addEventListener("pointerdown", onSplitterDown);
-
-  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
-
-  el.membersToggleBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleMemberPanel();
-  });
-
-      el.spaceOnboardingModal?.addEventListener("click", (e) => {
-        if (e.target === el.spaceOnboardingModal) {
-          closeSpaceOnboardingModal();
-        }
-      });
-
-      el.createSpaceModal?.addEventListener("click", (e) => {
-        if (e.target === el.createSpaceModal) {
-          closeCreateSpaceModal();
-        }
-      });
-
-  el.memberClose?.addEventListener("click", closeMemberPanel);
-
-    el.showCreateSpaceBtn?.addEventListener("click", switchToCreateSpaceModal);
-    el.closeCreateSpaceModalBtn?.addEventListener("click", closeCreateSpaceModal);
-    el.backToJoinModalBtn?.addEventListener("click", switchToJoinModal);
-    el.submitCreateSpaceBtn?.addEventListener("click", handleCreateSpace);
-
-    el.createSpaceNameInput?.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        handleCreateSpace();
-      }
-    });
-
-// --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
-  el.boardDesc = qs("#boardDesc");
-  if (el.boardDesc) {
-    el.boardDesc.addEventListener("click", () => {
-      if (el.boardDesc.getAttribute("contenteditable") === "false") {
-        el.boardDesc.setAttribute("contenteditable", "true");
-        el.boardDesc.focus();
-      }
-    });
-
-    el.boardDesc.addEventListener("blur", async () => {
-      el.boardDesc.setAttribute("contenteditable", "false");
-
-      const currentBoard = getCurrentBoard();
-      if (!currentBoard) return;
-
-      const nextDescription = el.boardDesc.textContent.trim();
-
-      try {
-      const updatedBoard = await updateBoard(currentBoard.id, { description: nextDescription });
-          currentBoard.description = updatedBoard.description ?? nextDescription;
-        syncBoardHeader();
-      } catch (err) {
-        console.error(err);
-        alert("보드 설명 저장에 실패했어.");
-        el.boardDesc.textContent = currentBoard.description ?? "";
-      }
-    });
-
-    el.boardDesc.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        el.boardDesc.blur();
-      }
-    });
+    if (!res.ok) throw new Error();
+    const code = await res.text();
+    display.textContent = code;
+  } catch (err) {
+    display.textContent = "생성 실패";
   }
-
-  el.addBoardBtn?.addEventListener("click", handleAddBoard);
-
-  el.boardList?.addEventListener("contextmenu", (e) => {
-    const btn = e.target.closest(".boardBtn");
-    if (!btn) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const boardId = btn.dataset.boardId;
-    if (!boardId) return;
-
-    openBoardContextMenu(e.clientX, e.clientY, boardId);
-  });
-
- el.boardContextMenu?.addEventListener("click", (e) => {
-   const btn = e.target.closest(".boardContextItem");
-   if (!btn || !contextBoardId) return;
-
-   const act = btn.dataset.act;
-
-   if (act === "rename") {
-     openRenameBoardModal(contextBoardId);
-     return;
-   }
-
-   if (act === "delete") {
-     openDeleteBoardConfirm(contextBoardId);
-   }
- });
-
 }
 
 // =========================a
@@ -247,7 +107,7 @@ el.composerPlusDock?.addEventListener("click", (e) => {
 // =========================
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 420;
-const COLOR_CLASSES = ["cream", "blue", "sage", "coral", "lavender"];
+const COLOR_CLASSES = ["yellow", "blue", "green", "peach", "purple"];
 const MAX_ATTACH = 4;
 
 let overlayCleanup = null; // 현재 열린 오버레이(모달/패널) 닫힐 때 실행할 정리 함수
@@ -266,7 +126,7 @@ const state = {
   spaceId: null,
   boardId: null,
   search: "",
-  quickColor: "cream",
+  quickColor: "yellow",
   data: {
     spaces: [],
     boards: [],
@@ -356,11 +216,19 @@ function formatDate(iso) {
   return `${mm}/${dd} ${period} ${hh}:${minutes}`;
 }
 
+function linkify(html) {
+  return html.replace(
+    /(https?:\/\/[^\s<>"']+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">$1</a>'
+  );
+}
+
 function highlight(text, q){
   const safe = escapeHTML(text);
-  if(!q) return safe.replaceAll("\n","<br/>");
+  const linked = linkify(safe.replaceAll("\n","<br/>"));
+  if(!q) return linked;
   const re = new RegExp(`(${escapeRegExp(q)})`, "gi");
-  return safe.replaceAll("\n","<br/>").replace(re, "<mark>$1</mark>");
+  return linked.replace(re, "<mark>$1</mark>");
 }
 
 function getNoteSize(content){
@@ -583,7 +451,7 @@ function openViewModal(id){
   if(!el.modalRoot) return;
 
   el.modalRoot.innerHTML = `
-    <div class="dialog noteDialog" id="viewMemoDialog">
+    <div class="dialog noteDialog" id="viewMemoDialog" style="width:min(680px, 92vw);">
       <div class="dialogBody">
 
         <!-- 1줄: 작성자 + x -->
@@ -595,10 +463,13 @@ function openViewModal(id){
           <button class="dialogClose" type="button" id="viewCloseBtn" aria-label="닫기">✕</button>
         </div>
 
-        <!-- 2줄: 내용 -->
+        <!-- 2줄: 첨부이미지 -->
+        <div id="viewAttachments" style="display:none; flex-direction:row; gap:8px; margin-top:10px; overflow-x:auto;"></div>
+
+        <!-- 2.5줄: 내용 -->
         <div id="viewContent"
-             style="white-space:pre-wrap;font-size:14px;font-weight:800;color:#111827;line-height:1.6;">
-        </div>
+                     style="white-space:pre-wrap;font-size:14px;font-weight:800;color:#111827;line-height:1.6;">
+                </div>
 
         <!-- 3줄: 시간(수정됨) + 버튼 -->
         <div class="viewBottom"
@@ -631,15 +502,27 @@ function openViewModal(id){
 
   // 메모 색 입히기
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
-  dialog.classList.add(m.color || "cream");
+  dialog.classList.add(m.color || "yellow");
 
   // 안전 렌더
   qs("#viewAuthor", dialog).textContent = canEdit
-    ? `작성자 ID ${m.authorId} (나)`
-    : `작성자 ID ${m.authorId}`;
+      ? `${m.authorNickname ?? m.authorId} (나)`
+      : `${m.authorNickname ?? m.authorId}`;
   qs("#viewTime", dialog).textContent = formatDate(m.createdAt);
   qs("#viewEdited", dialog).textContent = isEdited ? "(수정됨)" : "";
-  qs("#viewContent", dialog).textContent = m.content;
+  qs("#viewContent", dialog).innerHTML = linkify(escapeHTML(m.content).replaceAll("\n","<br/>"));
+
+  // 첨부 이미지 렌더
+  const viewAtt = qs("#viewAttachments", dialog);
+  if (viewAtt && m.attachments && m.attachments.length > 0) {
+    viewAtt.style.display = "flex";
+    viewAtt.innerHTML = m.attachments.map(att => `
+      <img src="${att.url}" alt="첨부 이미지"
+        style="height:200px; width:auto; border-radius:10px; object-fit:cover; cursor:pointer; flex-shrink:0;"
+        onclick="window.open('${att.url}', '_blank')"
+      />
+    `).join("");
+  }
 
   qs("#viewCloseBtn", dialog)?.addEventListener("click", closeOverlay);
 
@@ -672,18 +555,23 @@ function openEditModal(id){
 
       <div class="dialogBody">
         <textarea id="editText" class="dialogText" placeholder="메모를 입력..."></textarea>
-
+        <div class="attachPreview" id="editAttachPreview"></div>
+        <div class="memoAttachBar">
+          <input type="file" id="editFileInput" multiple hidden>
+          <button type="button" id="editAttachBtn" class="attachBtn">이미지 추가</button>
+        </div>
+        <div class="attachHint" id="editAttachHint"></div>
         <div class="dialogMeta">
           <span style="font-size:12px;font-weight:900;color:var(--muted);">
             색상
           </span>
 
           <div class="color-pick" id="editColors" aria-label="색상 선택">
-            <div class="swatch white" data-color="cream" title="화이트"></div>
+            <div class="swatch yellow" data-color="yellow" title="옐로우"></div>
             <div class="swatch blue" data-color="blue" title="블루"></div>
-            <div class="swatch green" data-color="sage" title="그린"></div>
-            <div class="swatch coral" data-color="coral" title="오렌지"></div>
-            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
+            <div class="swatch green" data-color="green" title="그린"></div>
+            <div class="swatch peach" data-color="peach" title="피치"></div>
+            <div class="swatch purple" data-color="purple" title="퍼플"></div>
           </div>
         </div>
 
@@ -702,10 +590,82 @@ function openEditModal(id){
 
   closeBtn?.addEventListener("click", () => openViewModal(id)); // 닫으면 보기로 복귀
 
+  // 기존 첨부 불러오기
+  const draftAttachments = m.attachments.map(att => ({
+    id: att.id,         // 서버 ID (기존)
+    file: null,         // 기존은 파일 없음
+    objectUrl: att.url, // 이미 서버 URL
+    isExisting: true
+  }));
+
+  const editPreview = qs("#editAttachPreview", dialog);
+  const editHint = qs("#editAttachHint", dialog);
+  const editFileInput = qs("#editFileInput", dialog);
+
+    // Ctrl+V 붙여넣기로 이미지 추가
+    dialog.addEventListener("paste", (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      Array.from(items).forEach(item => {
+        if (!item.type.startsWith("image/") || draftAttachments.length >= MAX_ATTACH) return;
+        const file = item.getAsFile();
+        if (!file) return;
+        draftAttachments.push({
+          id: null,
+          file,
+          objectUrl: URL.createObjectURL(file),
+          isExisting: false
+        });
+      });
+      rerenderEditAtt();
+    });
+
+  const editAttachBtn = qs("#editAttachBtn", dialog);
+
+  function rerenderEditAtt() {
+    if (!editPreview) return;
+    editPreview.innerHTML = "";
+    draftAttachments.forEach((att, idx) => {
+      const item = document.createElement("div");
+      item.className = "attachItem";
+      const img = document.createElement("img");
+      img.src = att.objectUrl;
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "attachRemove";
+      rm.textContent = "✕";
+      rm.addEventListener("click", () => {
+        if (!att.isExisting) URL.revokeObjectURL(att.objectUrl);
+        draftAttachments.splice(idx, 1);
+        rerenderEditAtt();
+      });
+      item.appendChild(img);
+      item.appendChild(rm);
+      editPreview.appendChild(item);
+    });
+    if (editHint) editHint.textContent = `(${draftAttachments.length}/${MAX_ATTACH})`;
+  }
+  rerenderEditAtt();
+
+  editAttachBtn?.addEventListener("click", () => editFileInput?.click());
+  editFileInput?.addEventListener("change", (e) => {
+    Array.from(e.target.files || []).forEach(file => {
+      if (!file.type.startsWith("image/") || draftAttachments.length >= MAX_ATTACH) return;
+      draftAttachments.push({
+        id: null,
+        file,
+        objectUrl: URL.createObjectURL(file),
+        isExisting: false
+      });
+    });
+    rerenderEditAtt();
+    editFileInput.value = "";
+  });
+
   // 초기값
   ta.value = m.content;
 
-  let picked = m.color || "cream";
+  let picked = m.color || "yellow";
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
   dialog.classList.add(picked);
 
@@ -735,7 +695,18 @@ function openEditModal(id){
     if (!next) return;
 
     try {
-      const updatedMemo = await updateMemoRequest(id, next, picked);
+      // 새 파일 업로드
+      const newFiles = draftAttachments.filter(a => !a.isExisting && a.file);
+      let uploadedIds = [];
+      if (newFiles.length > 0) {
+        const uploaded = await uploadFiles(newFiles.map(a => a.file));
+        uploadedIds = uploaded.map(f => f.id);
+      }
+      // 기존 유지할 ID + 새로 업로드한 ID
+      const existingIds = draftAttachments.filter(a => a.isExisting).map(a => a.id);
+      const attachmentIds = [...existingIds, ...uploadedIds];
+
+      const updatedMemo = await updateMemoRequest(id, next, picked, attachmentIds);
 
       const idx = state.data.memos.findIndex(x => String(x.id) === String(id));
       if (idx >= 0) {
@@ -790,7 +761,7 @@ function getMemosForBoard(){
 
   return all.filter(m =>
     m.content.toLowerCase().includes(q) ||
-    m.author.toLowerCase().includes(q)
+    (m.authorNickname ?? "").toLowerCase().includes(q)
   );
 }
 
@@ -871,15 +842,24 @@ async function deleteMemo(id) {
 
 async function submitQuick(textarea) {
   const text = textarea.value.trim();
-  if (!text || !state.boardId) return;
+  if (!text && dockImages.length === 0) return;
+  if (!state.boardId) return;
 
   try {
+    let attachmentIds = [];
+    if (dockImages.length > 0) {
+      const uploaded = await uploadFiles(dockImages.map(img => img.file));
+      attachmentIds = uploaded.map(f => f.id);
+      dockImages.forEach(img => URL.revokeObjectURL(img.url));
+      dockImages = [];
+      renderDockImagePreview();
+    }
     await createMemoRequest({
       content: text,
       boardId: state.boardId,
       authorId: Number(state.me),
       color: state.quickColor,
-      attachmentIds: []
+      attachmentIds
     });
     textarea.value = "";
     autoGrowTextarea(textarea);
@@ -995,6 +975,7 @@ function renderBoard(){
 
     const card = document.createElement("div");
     card.className = `note ${m.color} ${size}` + (canDelete ? " canDelete" : "");
+    card.style.height = "auto";
     card.dataset.id = m.id;
 
     const head = document.createElement("div");
@@ -1002,7 +983,7 @@ function renderBoard(){
 
     const author = document.createElement("span");
     author.className = "noteAuthor";
-    author.textContent = String(m.authorId ?? m.author ?? "");
+    author.textContent = m.authorNickname ?? String(m.authorId ?? "");
     head.appendChild(author);
 
     if(canDelete){
@@ -1020,32 +1001,31 @@ function renderBoard(){
 
     const body = document.createElement("div");
     body.className = "body";
+    body.style.cssText = "overflow:hidden; text-overflow:ellipsis; white-space:nowrap;";
     body.innerHTML = highlight(m.content, q);
 
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.innerHTML = `<span class="time">${formatDate(m.createdAt)}</span>`;
+    card.appendChild(head);  // 닉네임/X 항상 최상단
 
     if (m.attachments && m.attachments.length > 0) {
-          const imgWrap = document.createElement("div");
-          imgWrap.className = "noteImages";
+      const imgWrap = document.createElement("div");
+      imgWrap.className = "noteImages";
+      imgWrap.style.cssText = "width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:8px; position:relative; margin-bottom:6px;";
 
-          const img = document.createElement("img");
-          img.src = m.attachments[0].url;      // 첫 장만
-          img.alt = "첨부 이미지";
+      const img = document.createElement("img");
+      img.src = m.attachments[0].url;
+      img.alt = "첨부 이미지";
+      img.style.cssText = "width:100%; height:100%; object-fit:cover;";
 
-          const badge = document.createElement("span");
-          badge.className = "noteImgCount";
-          badge.textContent = `1/${m.attachments.length}`;
+      const badge = document.createElement("span");
+      badge.className = "noteImgCount";
+      badge.textContent = `1/${m.attachments.length}`;
 
-          imgWrap.appendChild(img);
-          imgWrap.appendChild(badge);
-          card.appendChild(imgWrap);
-        }
+      imgWrap.appendChild(img);
+      imgWrap.appendChild(badge);
+      card.appendChild(imgWrap);
+    }
 
-    card.appendChild(head);
     card.appendChild(body);
-    card.appendChild(meta);
 
     card.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -1172,11 +1152,11 @@ function openNewMemoModal(initialFiles = []){
           <span> </span>
 
           <div class="color-pick" id="newColors" aria-label="색상 선택">
-            <div class="swatch white selected" data-color="cream" title="화이트"></div>
+            <div class="swatch yellow selected" data-color="yellow" title="옐로우"></div>
             <div class="swatch blue" data-color="blue" title="블루"></div>
-            <div class="swatch green" data-color="sagesage" title="그린"></div>
-            <div class="swatch coral" data-color="coral" title="오렌지"></div>
-            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
+            <div class="swatch green" data-color="green" title="그린"></div>
+            <div class="swatch peach" data-color="peach" title="피치"></div>
+            <div class="swatch purple" data-color="purple" title="퍼플"></div>
           </div>
         </div>
 
@@ -1213,7 +1193,7 @@ function openNewMemoModal(initialFiles = []){
     }
 
   // ✅ picked는 먼저 선언 (저장 로직보다 위)
-  let picked = "cream";
+  let picked = "yellow";
 
 function rerenderAtt(){
   renderAttachments(attachPreview, draftAttachments, rerenderAtt);
@@ -1737,6 +1717,23 @@ function openSpaceSettings(spaceId) {
   });
 
   nameInput?.focus();
+
+  saveBtn?.addEventListener("click", async () => {
+    const nextName = nameInput?.value.trim();
+    if (!nextName) { alert("이름을 입력해."); nameInput?.focus(); return; }
+    try {
+      const updated = await updateSpace(spaceId, nextName, descInput?.value.trim() ?? "");
+      const sp = state.data.spaces.find(s => String(s.id) === String(spaceId));
+      if (sp) { sp.name = updated.name; sp.description = updated.description; }
+      renderSpaceList();
+      renderSpaceName();
+      closeOverlay();
+    } catch (err) {
+      console.error(err);
+      alert("저장에 실패했어.");
+    }
+  });
+
   nameInput?.setSelectionRange(nameInput.value.length, nameInput.value.length);
 }
 
@@ -2264,16 +2261,13 @@ async function createMemoRequest({ content, boardId, authorId, color, attachment
   return await res.json();
 }
 
-async function updateMemoRequest(memoId, content, color) {
-  const params = new URLSearchParams({
-    content,
-    color
-  });
-
-  const res = await authFetch(`http://localhost:8080/memos/${memoId}?${params.toString()}`, {
-    method: "PUT",
-    credentials: "include"
-  });
+async function updateMemoRequest(memoId, content, color, attachmentIds = []) {
+  const res = await authFetch(`http://localhost:8080/memos/${memoId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ content, color, attachmentIds })
+    });
 
   if (!res.ok) {
     const text = await res.text();
@@ -2303,8 +2297,9 @@ function applyMemos(memos) {
     boardId: String(m.board?.id ?? m.boardId),
     authorId: String(m.authorId ?? ""),
     author: String(m.authorId ?? ""),
+    authorNickname: m.authorNickname ?? null,
     content: m.content ?? "",
-    color: m.color ?? "cream",
+    color: m.color ?? "yellow",
     createdAt: m.createdAt ?? new Date().toISOString(),
     updatedAt: m.updatedAt ?? null,
     attachments: Array.isArray(m.attachments) ? m.attachments : []
@@ -2787,7 +2782,278 @@ function syncMyProfile() {
     .catch(() => {});
 }
 
+async function handleLeaveSpace(spaceId) {
+  if (!confirm("스페이스에서 나가시겠습니까?")) return;
+  try {
+    await authFetch(`/spaces/${spaceId}/members/${state.me}`, {
+      method: "DELETE",
+      credentials: "include"
+    });
 
+    await fetchAndApplySpaces();
+
+    if (state.data.spaces.length === 0) {
+      // 스페이스가 하나도 없음 → 온보딩
+      state.spaceId = null;
+      state.boardId = null;
+      state.data.memos = [];
+      setRouteToUrl(null, null);
+      renderAll();
+      syncSpaceOnboardingModal();
+    } else if (String(state.spaceId) === String(spaceId)) {
+      // 나간 스페이스가 현재 스페이스였음 → 첫번째로 이동
+      await setSpace(state.data.spaces[0].id);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("나가기 실패");
+  }
+}
+
+function addDockImage(file) {
+  if (dockImages.length >= 4) { alert("이미지는 최대 4개야."); return; }
+  const url = URL.createObjectURL(file);
+  dockImages.push({ file, url });
+  renderDockImagePreview();
+}
+
+function renderDockImagePreview() {
+  const preview = qs("#dockImagePreview");
+  if (!preview) return;
+  if (dockImages.length === 0) {
+    preview.style.display = "none";
+    preview.innerHTML = "";
+    return;
+  }
+  preview.style.display = "flex";
+  preview.innerHTML = dockImages.map((img, i) => `
+    <div class="attachItem">
+      <img src="${img.url}" />
+      <button class="attachRemove" data-index="${i}" type="button">✕</button>
+    </div>
+  `).join("");
+  preview.querySelectorAll(".attachRemove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.index);
+      URL.revokeObjectURL(dockImages[idx].url);
+      dockImages.splice(idx, 1);
+      renderDockImagePreview();
+    });
+  });
+}
+
+// =========================
+// bind events
+// =========================
+function bindEvents(){
+  el.quickInput?.addEventListener("input", e => autoGrowTextarea(e.target));
+  el.quickInputDock?.addEventListener("input", e => autoGrowTextarea(e.target));
+
+  el.meBtn?.addEventListener("click", openProfileModal);
+
+  // 탭 전환
+  el.tabBoard?.addEventListener("click", () => switchTab("board"));
+  el.tabSpace?.addEventListener("click", () => switchTab("space"));
+
+  // 스페이스 추가 버튼
+  el.addSpaceBtn?.addEventListener("click", () => openSpaceOnboardingModal());
+
+  // 스페이스 목록 액션 버튼
+    el.spaceList?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".spaceBtn");
+      if (btn) {
+        setSpace(btn.dataset.spaceId);
+        switchTab("board");
+      }
+    });
+
+    el.spaceList?.addEventListener("contextmenu", (e) => {
+      const btn = e.target.closest(".spaceBtn");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openSpaceContextMenu(e.clientX, e.clientY, btn.dataset.spaceId);
+    });
+
+  el.searchInput?.addEventListener("input", onSearchInput);
+  el.searchClear?.addEventListener("click", onSearchClear);
+
+  el.quickInput?.addEventListener("keydown", onQuickKeydown);
+  el.quickInputDock?.addEventListener("keydown", onQuickKeydownDock);
+
+el.composerPlus?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openNewMemoModal();
+});
+
+el.composerPlusDock?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  openNewMemoModal();
+});
+
+  el.composerFile?.addEventListener("change", () => onComposerFiles(el.composerFile));
+  el.composerFileDock?.addEventListener("change", () => onComposerFiles(el.composerFileDock));
+
+  el.panelClose?.addEventListener("click", closeSidePanel);
+
+  el.overlay?.addEventListener("pointerdown", onOverlayPointerDown);
+  window.addEventListener("keydown", onGlobalKeydown);
+  document.addEventListener("pointerdown", onDocumentPointerDown);
+
+  el.toggleSidebarBtn?.addEventListener("click", onToggleSidebar);
+  el.splitter?.addEventListener("pointerdown", onSplitterDown);
+
+  el.joinByCodeBtn?.addEventListener("click", handleJoinByCode);
+
+  el.membersToggleBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMemberPanel();
+  });
+
+      el.spaceOnboardingModal?.addEventListener("click", (e) => {
+        if (e.target === el.spaceOnboardingModal) {
+          closeSpaceOnboardingModal();
+        }
+      });
+
+      el.createSpaceModal?.addEventListener("click", (e) => {
+        if (e.target === el.createSpaceModal) {
+          closeCreateSpaceModal();
+        }
+      });
+
+  el.memberClose?.addEventListener("click", closeMemberPanel);
+
+    el.showCreateSpaceBtn?.addEventListener("click", switchToCreateSpaceModal);
+    el.closeCreateSpaceModalBtn?.addEventListener("click", closeCreateSpaceModal);
+    el.backToJoinModalBtn?.addEventListener("click", switchToJoinModal);
+    el.submitCreateSpaceBtn?.addEventListener("click", handleCreateSpace);
+
+    el.createSpaceNameInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleCreateSpace();
+      }
+    });
+
+// --- 교체할 코드 (bindEvents 함수 안에 넣으세요) ---
+  el.boardDesc = qs("#boardDesc");
+  if (el.boardDesc) {
+    el.boardDesc.addEventListener("click", () => {
+      if (el.boardDesc.getAttribute("contenteditable") === "false") {
+        el.boardDesc.setAttribute("contenteditable", "true");
+        el.boardDesc.focus();
+      }
+    });
+
+    el.boardDesc.addEventListener("blur", async () => {
+      el.boardDesc.setAttribute("contenteditable", "false");
+
+      const currentBoard = getCurrentBoard();
+      if (!currentBoard) return;
+
+      const nextDescription = el.boardDesc.textContent.trim();
+
+      try {
+      const updatedBoard = await updateBoard(currentBoard.id, { description: nextDescription });
+          currentBoard.description = updatedBoard.description ?? nextDescription;
+        syncBoardHeader();
+      } catch (err) {
+        console.error(err);
+        alert("보드 설명 저장에 실패했어.");
+        el.boardDesc.textContent = currentBoard.description ?? "";
+      }
+    });
+
+    el.boardDesc.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        el.boardDesc.blur();
+      }
+    });
+  }
+
+  el.addBoardBtn?.addEventListener("click", handleAddBoard);
+
+  el.boardList?.addEventListener("contextmenu", (e) => {
+    const btn = e.target.closest(".boardBtn");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const boardId = btn.dataset.boardId;
+    if (!boardId) return;
+
+    openBoardContextMenu(e.clientX, e.clientY, boardId);
+  });
+
+ el.boardContextMenu?.addEventListener("click", (e) => {
+   const btn = e.target.closest(".boardContextItem");
+   if (!btn || !contextBoardId) return;
+
+   const act = btn.dataset.act;
+
+   if (act === "rename") {
+     openRenameBoardModal(contextBoardId);
+     return;
+   }
+
+   if (act === "delete") {
+     openDeleteBoardConfirm(contextBoardId);
+   }
+ });
+
+ el.spaceContextMenu?.addEventListener("click", (e) => {
+   const item = e.target.closest(".spaceContextItem");
+   if (!item) return;
+   const act = item.dataset.act;
+
+   if (act === "invite") {
+     handleGenerateInviteCode(contextSpaceId);
+     closeSpaceContextMenu();
+   } else if (act === "settings") {
+     openSpaceSettings(contextSpaceId);
+   } else if (act === "leave") {
+     handleLeaveSpace(contextSpaceId);
+     closeSpaceContextMenu();
+   }
+ });
+
+ qs("#inviteModalClose")?.addEventListener("click", () => {
+   qs("#inviteModal")?.classList.add("hidden");
+ });
+
+ qs("#inviteCopyBtn")?.addEventListener("click", () => {
+   const code = qs("#inviteCodeDisplay")?.textContent;
+   if (code) navigator.clipboard.writeText(code).then(() => alert("복사됐어!"));
+ });
+
+ // Ctrl+V 붙여넣기
+ el.quickInputDock?.addEventListener("paste", (e) => {
+   const items = Array.from(e.clipboardData?.items ?? []);
+   const imageItems = items.filter(i => i.type.startsWith("image/"));
+   if (imageItems.length === 0) return;
+   e.preventDefault();
+   imageItems.forEach(item => {
+     const file = item.getAsFile();
+     if (file) addDockImage(file);
+   });
+ });
+
+ // 드래그 앤 드롭
+ const dockBar = qs("#dock");
+ dockBar?.addEventListener("dragover", (e) => {
+   e.preventDefault();
+   e.dataTransfer.dropEffect = "copy";
+ });
+ dockBar?.addEventListener("drop", (e) => {
+   e.preventDefault();
+   const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+   files.forEach(f => addDockImage(f));
+ });
+
+}
 
 // =========================
 // renderAll

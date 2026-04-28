@@ -1,4 +1,4 @@
-package com.stick.app.service;
+package com.stick.app.service.board;
 
 import com.stick.app.domain.board.Board;
 import com.stick.app.domain.space.Space;

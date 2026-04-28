@@ -25,7 +25,7 @@ html,body{
 
 body{
   margin: 0;
-  background: #fdf8f2;
+  background: #fcf7f2;
   color: var(--text);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
 }
@@ -336,24 +336,24 @@ body{
   text-overflow: ellipsis;
 }
 
-.composerBar.cream{
-  background: #faf1e1;
+.composerBar.yellow{
+  background: #fdecb9;
 }
 
 .composerBar.blue{
-  background: #d4deea;
+  background: #d5e2ef;
 }
 
-.composerBar.sage{
-  background: #b8d1cf;
+.composerBar.green{
+  background: #cee7d6;
 }
 
-.composerBar.coral{
-  background: #f9cca3;
+.composerBar.peach{
+  background: #fed2bf;
 }
 
-.composerBar.lavender{
-  background: #d6cae3;
+.composerBar.purple{
+  background: #e5d6ef;
 }
 
 mark{
@@ -467,28 +467,28 @@ mark{
   font: inherit;
 }
 
-.dialog.noteDialog.cream{
-  background: #faf1e1;
+.dialog.noteDialog.yellow{
+  background: #fdecb9;
   color: #111827;
 }
 
 .dialog.noteDialog.blue{
-  background: #d4deea;
+  background: #d5e2ef;
   color: #111827;
 }
 
-.dialog.noteDialog.sage{
-  background: #b8d1cf;
+.dialog.noteDialog.green{
+  background: #cee7d6;
   color: #111827;
 }
 
-.dialog.noteDialog.coral{
-  background: #f9cca3;
+.dialog.noteDialog.peach{
+  background: #fed2bf;
   color: #111827;
 }
 
-.dialog.noteDialog.lavender{
-  background: #d6cae3;
+.dialog.noteDialog.purple{
+  background: #e5d6ef;
   color: #111827;
 }
 
@@ -515,25 +515,25 @@ mark{
   cursor: pointer;
 }
 
-.swatch.white{
-  background: #faf1e1;
+.swatch.yellow {
+  background: #fdecb9;
   border: 2px solid rgba(0,0,0,.15);
 }
 
 .swatch.blue{
-  background: #d4deea;
+  background: #d5e2ef;
 }
 
 .swatch.green{
-  background: #b8d1cf;
+  background: #cee7d6;
 }
 
-.swatch.coral{
-  background: #f9cca3;
+.swatch.peach{
+  background: #fed2bf;
 }
 
 .swatch.purple{
-  background: #d6cae3;
+  background: #e5d6ef;
 }
 
 .swatch.selected{
@@ -695,28 +695,28 @@ mark{
   width: 560px;
 }
 
-.note.cream{
-  background: #faf1e1;
+.note.yellow{
+  background: #fdecb9;
   color: #111827;
 }
 
 .note.blue{
-  background: #d4deea;
+  background: #d5e2ef;
   color: #111827;
 }
 
-.note.sage{
-  background: #b8d1cf;
+.note.green{
+  background: #cee7d6;
   color: #111827;
 }
 
-.note.coral{
-  background: #f9cca3;
+.note.peach{
+  background: #fed2bf;
   color: #111827;
 }
 
-.note.lavender{
-  background: #d6cae3;
+.note.purple{
+  background: #e5d6ef;
   color: #111827;
 }
 
@@ -846,7 +846,7 @@ mark{
 
 .splitter{
   cursor: col-resize;
-  background: #F0E8DA;
+  background: #fef5e5;
   position: relative;
 }
 
@@ -988,8 +988,8 @@ mark{
 }
 
 .btn.primary{
-  border-color: #fdaf54;
-  background : #fdaf54;
+  border-color: #F97316;
+  background : #F97316;
   color : #ffffff;
 }
 
@@ -1022,7 +1022,7 @@ mark{
 }
 
 .meRow:hover{
-  background: #f3f4f6;
+  background: rgb(17, 24, 39, .04);
 }
 
 .avatar{
@@ -1034,8 +1034,8 @@ mark{
   justify-content: center;
   font-weight: 900;
   font-size: 13px;
-  background: #e5e7eb;
-  color: #111827;
+  background: #F97316;
+  color: #ffffff;
   flex: 0 0 auto;
 }
 
@@ -1339,7 +1339,7 @@ mark{
   right: -170px;
   width: 170px;
   height: calc(100vh - var(--topbar-h));
-  background: #F0E8DA;
+  background: #fef5e5;
   transition: right .25s ease;
   z-index: 150;
   display: flex;
@@ -1374,7 +1374,7 @@ mark{
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  background: #FFF8EE;
+  background: #fcf7f2;
   justify-content: space-between;
 }
 
@@ -1801,7 +1801,7 @@ mark{
 }
 
 .addBoardBtn:hover{
-  background: #f3f4f6;
+  background: rgb(17, 24, 39, .04);
 }
 
 /* 탭 */

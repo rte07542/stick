@@ -1,8 +1,5 @@
 package com.stick.user.service;
 
-import com.stick.app.domain.space.SpaceMember;
-import com.stick.app.domain.space.SpaceRole;
-import com.stick.app.repository.space.SpaceMemberRepository;
 import com.stick.user.domain.User;
 import com.stick.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +10,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final SpaceMemberRepository spaceMemberRepository;
 
     public User signup(String loginId, String password, String nickname, boolean ageConfirmed) {
         if (!ageConfirmed) {
@@ -52,6 +48,12 @@ public class UserService {
     public User getUserById(Long userId){
         return userRepository.findById(userId)
                 .orElseThrow(()->new IllegalArgumentException("없는 유저"));
+    }
+
+    public String getNicknameById(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getNickname)
+                .orElse("알 수 없음");
     }
 
     public boolean isLoginIdAvailable(String loginId) {

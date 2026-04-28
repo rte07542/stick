@@ -1,7 +1,7 @@
 package com.stick.app.controller.upload;
 
 import com.stick.app.dto.UploadFileResponse;
-import com.stick.app.service.UploadFileService;
+import com.stick.app.service.upload.UploadFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;

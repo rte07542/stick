@@ -104,11 +104,11 @@
                                                   placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                                         <div class="color-pick" id="quickColors">
-                                            <div class="swatch white selected" data-color="cream" title="화이트"></div>
+                                            <div class="swatch yellow selected" data-color="yellow" title="옐로우"></div>
                                             <div class="swatch blue" data-color="blue" title="블루"></div>
-                                            <div class="swatch green" data-color="sage" title="그린"></div>
-                                            <div class="swatch coral" data-color="coral" title="오렌지"></div>
-                                            <div class="swatch purple" data-color="lavender" title="퍼플"></div>
+                                            <div class="swatch green" data-color="green" title="그린"></div>
+                                            <div class="swatch coral" data-color="peach" title="피치"></div>
+                                            <div class="swatch purple" data-color="purple" title="퍼플"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -120,6 +120,7 @@
 
             <!-- ✅ 메모가 1개 이상일 때만 쓸 하단 composer -->
             <div class="dock" hidden id="dock">
+                <div id="dockImagePreview" class="attachPreview" style="display:none; padding: 8px 12px 0;"></div>
                 <div class="composerRow">
                     <div class="composerBar">
                         <div class="composerLeft">
@@ -129,11 +130,11 @@
                                       placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                             <div aria-label="색상 선택" class="color-pick" id="newColors">
-                                <div class="swatch white selected" data-color="cream" title="화이트"></div>
+                                <div class="swatch yellow selected" data-color="yellow" title="옐로우"></div>
                                 <div class="swatch blue" data-color="blue" title="블루"></div>
-                                <div class="swatch green" data-color="sage" title="그린"></div>
-                                <div class="swatch coral" data-color="coral" title="오렌지"></div>
-                                <div class="swatch purple" data-color="lavender" title="퍼플"></div>
+                                <div class="swatch green" data-color="green" title="그린"></div>
+                                <div class="swatch peach" data-color="peach" title="피치"></div>
+                                <div class="swatch purple" data-color="purple" title="퍼플"></div>
                             </div>
                         </div>
                     </div>
@@ -217,6 +218,27 @@
 <div id="boardContextMenu" class="boardContextMenu hidden">
     <button class="boardContextItem" type="button" data-act="rename">보드명 변경</button>
     <button type="button" class="boardContextItem danger" data-act="delete">보드 삭제</button>
+</div>
+
+<div class="modalBackdrop hidden" id="inviteModal">
+    <div class="spaceOnboardingModal" style="position:relative;">
+        <button class="spaceModalClose" id="inviteModalClose">✕</button>
+        <div class="spaceOnboardingBrand text">초대코드</div>
+        <div id="inviteCodeDisplay" style="
+      width:100%;
+      padding: 14px 16px;
+      background:#f9f9f9;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      font-size:22px;
+      font-weight:900;
+      text-align:center;
+      letter-spacing:4px;
+      color:#111827;
+      margin-bottom:14px;
+    ">...</div>
+        <button id="inviteCopyBtn" class="spaceJoinBtn">복사하기</button>
+    </div>
 </div>
 
 

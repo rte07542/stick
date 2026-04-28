@@ -17,6 +17,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final List<String> WHITELIST = List.of(
             "/users/login",
             "/users/signup",
+            "/users/check",
             "/favicon.ico",
             "/",
             "/index.html",

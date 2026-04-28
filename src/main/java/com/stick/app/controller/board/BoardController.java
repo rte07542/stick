@@ -5,7 +5,7 @@ import com.stick.app.domain.board.Board;
 import com.stick.app.dto.BoardCreateRequest;
 import com.stick.app.dto.BoardResponse;
 import com.stick.app.dto.BoardUpdateRequest;
-import com.stick.app.service.BoardService;
+import com.stick.app.service.board.BoardService;
 import com.stick.app.service.space.SpaceMemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
