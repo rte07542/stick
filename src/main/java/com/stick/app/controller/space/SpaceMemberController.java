@@ -78,7 +78,7 @@ public class SpaceMemberController {
                              HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         SpaceMember me = spaceMemberService.getSpaceMember(spaceId, userId);
-        SpaceMember target = spaceMemberService.getSpaceMember(spaceId, userId);
+        SpaceMember target = spaceMemberService.getSpaceMember(spaceId, targetUserId);
 
         if (me.getRole() == SpaceRole.MEMBER) {
             throw new IllegalArgumentException("권한 없음");

@@ -20,25 +20,34 @@
                     <img alt="" class="sideIcon" src="../img/sidebar-icon.svg">
                 </button>
             </div>
+
             <div class="sideTabs">
-                <button class="sideTab active" id="tabBoard" type="button">보드</button>
                 <button class="sideTab" id="tabSpace" type="button">스페이스</button>
+                <button class="sideTab active" id="tabBoard" type="button">보드</button>
             </div>
 
-            <div class="sideMiddle" id="panelBoard">
+            <div class="sideMiddle" id="panelSpace">
+                <div class="panelHeader">
+                    <img class="panelHeaderIcon" src="../img/spaceIcon.svg" alt="">
+                    <div class="panelHeaderText">
+                        <span class="panelHeaderSub">여러 공간을 모아보기</span>
+                    </div>
+                </div>
+                <div id="spaceList" class="spaceList"></div>
+                <button type="button" id="addSpaceBtn" class="addBoardBtn">스페이스 추가 +</button>
+            </div>
+
+            <div class="sideMiddle hidden" id="panelBoard">
+                <div class="panelHeader">
+                    <img class="panelHeaderIcon" src="../img/boardIcon.svg" alt="">
+                    <div class="panelHeaderText">
+                        <span class="panelHeaderSub" id="tabBoardSub">게시판</span>
+                    </div>
+                </div>
                 <div id="boardList" class="boardList"></div>
                 <div class="sideSectionHead">
-                    <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">
-                        보드 추가 +
-                    </button>
+                    <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">보드 추가 +</button>
                 </div>
-            </div>
-
-            <div class="sideMiddle hidden" id="panelSpace">
-                <div id="spaceList" class="spaceList"></div>
-                <button type="button" id="addSpaceBtn" class="addBoardBtn">
-                    스페이스 추가 +
-                </button>
             </div>
 
             <div class="sideFooter userBar">

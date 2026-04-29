@@ -69,6 +69,16 @@ public class SpaceMemberService {
     public SpaceMember updateMemberRole(Long spaceId, Long targetUserId, SpaceRole newRole) {
         SpaceMember member = spaceMemberRepository.findBySpaceIdAndUserId(spaceId, targetUserId)
                 .orElseThrow(()->new IllegalArgumentException("해당 멤버 없음"));
+        // OWNER 이전 시 기존 OWNER를 ADMIN으로 강등
+        if (newRole == SpaceRole.OWNER) {
+            List<SpaceMember> currentOwners = spaceMemberRepository.findBySpaceIdAndRole(spaceId, SpaceRole.OWNER);
+            for (SpaceMember owner : currentOwners) {
+                if (!owner.getUser().getId().equals(targetUserId)) {
+                    owner.setRole(SpaceRole.MEMBER);
+                    spaceMemberRepository.save(owner);
+                }
+            }
+        }
         member.setRole(newRole);
         return spaceMemberRepository.save(member);
     }

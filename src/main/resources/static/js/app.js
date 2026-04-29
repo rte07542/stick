@@ -895,38 +895,32 @@ function showOnboarding(show){
 
 function renderBoards() {
   if (!el.boardList) return;
-
-  el.boardList.innerHTML = "";
   const currentSpace = getCurrentSpace();
+  console.log("boards:", currentSpace?.boards);
+  el.boardList.innerHTML = "";
   const boards = currentSpace?.boards ?? [];
 
-  boards.forEach((boardItem) => {
-    const boardId = typeof boardItem === "object"
-      ? String(boardItem.id)
-      : String(boardItem);
+  if (boards.length === 0) {
+        el.boardList.innerHTML = '<div class="emptyListMsg">개설된 보드 없음</div>';
+        return;
+    }
 
-    const boardName = typeof boardItem === "object"
-      ? boardItem.name
-      : String(boardItem);
+  boards.forEach((boardItem) => {
+    const boardId = typeof boardItem === "object" ? String(boardItem.id) : String(boardItem);
+    const boardName = typeof boardItem === "object" ? boardItem.name : String(boardItem);
+    const count = typeof boardItem === "object" ? (boardItem.memoCount ?? 0) : 0;
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "boardBtn" + (boardId === String(state.boardId) ? " active" : "");
     btn.dataset.boardId = boardId;
-
-    const count = typeof boardItem === "object"
-      ? (boardItem.memoCount ?? 0)
-      : 0;
-
     btn.innerHTML = `
-      <span class="boardHash"># ${escapeHTML(boardName)}</span>
-      <span class="boardCount">${count}</span>
+      <img class="boardItemIcon" src="../img/miniBoardIcon.svg" alt="">
+      <span class="boardItemName">${escapeHTML(boardName)}</span>
+      <span class="boardItemCount">${count}</span>
+      <span class="boardChevron">›</span>
     `;
-
-    btn.addEventListener("click", async () => {
-      await setBoard(boardId);
-    });
-
+    btn.addEventListener("click", async () => await setBoard(boardId));
     el.boardList.appendChild(btn);
   });
 }
@@ -1358,20 +1352,132 @@ function onDocumentPointerDown(e){
 
 function renderMemberPanel(){
   const ch = getCurrentSpace();
-  const list = ch?.members ?? [];
+  const list = ch?.membersFull ?? [];
+  const myRole = list.find(m => String(m.userId) === String(state.me))?.role ?? "MEMBER";
+
+  const ROLE_LABEL = { OWNER: "소유자", ADMIN: "관리자", MEMBER: "멤버" };
+  const ROLE_COLOR = { OWNER: "#f59e0b", ADMIN: "#3b82f6", MEMBER: "#6b7280" };
 
   const html = list.length
-    ? list.map(n => `
-        <div class="memberItem">
-          <span class="memberName">${escapeHTML(n)}</span>
-        </div>
-      `).join("")
-    : `<div style="padding:12px 16px; font-size:12px; color:var(--muted); font-weight:800;">멤버 없음</div>`;
+    ? list.map(m => {
+        return `
+          <div class="memberItem" style="display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:default;"
+               data-uid="${m.userId}" data-role="${m.role}" data-name="${escapeHTML(m.nickname)}">
+            <span class="memberName" style="flex:1;font-size:13px;font-weight:800;">${escapeHTML(m.nickname)}</span>
+            <span style="font-size:11px;font-weight:900;color:${ROLE_COLOR[m.role]};background:${ROLE_COLOR[m.role]}18;border-radius:6px;padding:2px 7px;">${ROLE_LABEL[m.role] ?? m.role}</span>
+          </div>`;
+      }).join("")
+    : `<div style="padding:12px 16px;font-size:12px;color:var(--muted);font-weight:800;">멤버 없음</div>`;
 
-  if(el.memberPanelBody) {el.memberPanelBody.innerHTML = `<div class="memberList">${html}</div>`;}
+  if (el.memberPanelBody) {
+    el.memberPanelBody.innerHTML = `<div class="memberList">${html}</div>`;
 
-  if(el.memberTitle) {el.memberTitle.textContent = `멤버 (${list.length})`;}
+    el.memberPanelBody.querySelectorAll(".memberItem").forEach(item => {
+      item.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        const uid = item.dataset.uid;
+        const role = item.dataset.role;
+        const name = item.dataset.name;
+        const isMe = String(uid) === String(state.me);
+        const canKick = !isMe && (
+          (myRole === "OWNER" && role !== "OWNER") ||
+          (myRole === "ADMIN" && role === "MEMBER")
+        );
+        const canChangeRole = !isMe && myRole === "OWNER";
+        if (!canKick && !canChangeRole) return;
+        openMemberContextMenu(e.clientX, e.clientY, ch.id, uid, name, role, canKick, canChangeRole);
+      });
+    });
+  }
 
+  if (el.memberTitle) el.memberTitle.textContent = `멤버 (${list.length})`;
+}
+
+function openMemberContextMenu(x, y, spaceId, targetUserId, name, currentRole, canKick, canChangeRole) {
+  document.querySelector("#memberCtxMenu")?.remove();
+
+  const menu = document.createElement("div");
+  menu.id = "memberCtxMenu";
+  menu.style.cssText = "position:fixed;background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 0;box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:9999;min-width:150px;";
+  menu.style.left = Math.min(x, window.innerWidth - 160) + "px";
+  menu.style.top = Math.min(y, window.innerHeight - 160) + "px";
+
+  if (canChangeRole) {
+    const roleBtn = document.createElement("button");
+    roleBtn.type = "button";
+    roleBtn.style.cssText = "display:block;width:100%;text-align:left;padding:9px 16px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:800;color:#111827;";
+    roleBtn.textContent = "역할 변경";
+    roleBtn.addEventListener("click", () => {
+      menu.remove();
+      openRoleChangePopup(x, y, spaceId, targetUserId, currentRole);
+    });
+    menu.appendChild(roleBtn);
+  }
+
+  if (canKick) {
+    const kickBtn = document.createElement("button");
+    kickBtn.type = "button";
+    kickBtn.style.cssText = "display:block;width:100%;text-align:left;padding:9px 16px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:800;color:#b42318;";
+    kickBtn.textContent = "강퇴";
+    kickBtn.addEventListener("click", async () => {
+      menu.remove();
+      if (!confirm(`${name}님을 강퇴할까요?`)) return;
+      try {
+        await authFetch(`/spaces/${spaceId}/members/${targetUserId}`, { method: "DELETE", credentials: "include" });
+        await openMemberPanel();
+      } catch { alert("강퇴에 실패했어."); }
+    });
+    menu.appendChild(kickBtn);
+  }
+
+  document.body.appendChild(menu);
+
+  setTimeout(() => {
+    document.addEventListener("click", function close(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener("click", close); }
+    });
+  }, 0);
+}
+
+function openRoleChangePopup(x, y, spaceId, targetUserId, currentRole) {
+  document.querySelector("#roleChangePopup")?.remove();
+
+  const roles = [
+    { value: "OWNER", label: "소유자", desc: "모든 권한 (당신은 관리자로 강등)" },
+    { value: "ADMIN", label: "관리자", desc: "멤버 강퇴 가능" },
+    { value: "MEMBER", label: "멤버", desc: "기본 권한" },
+  ];
+
+  const popup = document.createElement("div");
+  popup.id = "roleChangePopup";
+  popup.style.cssText = "position:fixed;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 0;box-shadow:0 4px 24px rgba(0,0,0,.12);z-index:9999;min-width:210px;";
+  popup.style.left = Math.min(x, window.innerWidth - 220) + "px";
+  popup.style.top = Math.min(y, window.innerHeight - 160) + "px";
+
+  roles.forEach(r => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.style.cssText = `display:block;width:100%;text-align:left;padding:9px 16px;background:${r.value === currentRole ? "#f3f4f6" : "none"};border:none;cursor:pointer;`;
+    item.innerHTML = `<div style="font-size:13px;font-weight:900;color:#111827;">${r.label}</div><div style="font-size:11px;font-weight:700;color:var(--muted);">${r.desc}</div>`;
+    item.addEventListener("click", async () => {
+      popup.remove();
+      if (r.value === currentRole) return;
+      if (r.value === "OWNER" && !confirm("이 멤버에게 소유자 권한을 넘기면 당신은 관리자로 강등됩니다. 계속할까요?")) return;
+      try {
+        await authFetch(`/spaces/${spaceId}/members/${targetUserId}/role?role=${r.value}`, { method: "PATCH", credentials: "include" });
+        await openMemberPanel();
+      } catch { alert("역할 변경에 실패했어."); }
+    });
+    popup.appendChild(item);
+  });
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    document.addEventListener("click", function close(e) {
+      if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener("click", close); }
+    });
+  }, 0);
 }
 
 async function openMemberPanel(){
@@ -1381,6 +1487,7 @@ async function openMemberPanel(){
       credentials: "include"
     });
     const members = await res.json();
+    currentSpace.membersFull = members;
     currentSpace.members = members.map(m => m.nickname);
   }
   renderMemberPanel();
@@ -2454,23 +2561,26 @@ function switchTab(tab) {
 function renderSpaceList() {
   if (!el.spaceList) return;
   if (state.data.spaces.length === 0) {
-    el.spaceList.innerHTML = '<div class="emptySpaceMsg">스페이스가 없습니다</div>';
+  el.spaceList.innerHTML = '<div class="emptyListMsg">가입된 스페이스 없음</div>';
     return;
   }
   el.spaceList.innerHTML = state.data.spaces.map(space => {
     const active = String(space.id) === String(state.spaceId) ? "is-active" : "";
     return `
       <button class="spaceBtn ${active}" type="button" data-space-id="${space.id}">
-        <span class="spacePrefix">● </span>${escapeHTML(space.name)}
+        <img class="spaceItemIcon" src="../img/miniSpaceIcon.svg" alt="">
+        <span class="spaceItemName">${escapeHTML(space.name)}</span>
+        <span class="spaceChevron">›</span>
       </button>
     `;
   }).join("");
 }
 
 function renderSpaceName() {
-    const space = getCurrentSpace();
-    if (el.tabBoard) {
-        el.tabBoard.textContent = space?.name ?? "스페이스 없음";
+    const tabBoardSub = document.getElementById("tabBoardSub");
+    if (tabBoardSub) {
+        const spaceName = getCurrentSpace()?.name ?? "";
+        tabBoardSub.textContent = spaceName ? `${spaceName} 의 게시판` : "게시판";
     }
 }
 
@@ -2561,6 +2671,7 @@ function openProfileModal() {
   });
 
   qs("#profileLogoutBtn", dialog)?.addEventListener("click", () => {
+    if (!confirm("로그아웃 할까요?")) return;
     localStorage.removeItem("token");
     localStorage.removeItem("loginUserId");
     window.location.href = "/";
@@ -3059,6 +3170,9 @@ el.composerPlusDock?.addEventListener("click", (e) => {
 // renderAll
 // =========================
 function renderAll() {
+
+  switchTab("space");
+
   if (!hasAnySpace()) {
     showOnboarding(true);
     return;
@@ -3067,6 +3181,7 @@ function renderAll() {
   showOnboarding(false);
 
   const currentSpace = getCurrentSpace();
+  console.log("spaceId:", state.spaceId, "currentSpace:", currentSpace);  // 추가
 
   if (!state.spaceId || !currentSpace) {
     if (el.boardList) el.boardList.innerHTML = "";

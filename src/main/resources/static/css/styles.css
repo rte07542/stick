@@ -105,18 +105,55 @@ body{
   padding : 8px 0;
 }
 
-.boardBtn{
-  width: 100%;
-  border: none;
-  background: transparent;
-  text-align: left;
-  padding: 10px 8px;
-  border-radius: 8px;
-  cursor: pointer;
+.boardBtn {
   display: flex;
-  justify-content: space-between;
-  gap: 4px;
   align-items: center;
+  gap: 10px;
+  width: calc(100% - 16px);
+  margin: 3px 8px;
+  padding: 6px 12px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.boardBtn .boardItemIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  filter: grayscale(1) opacity(0.4);
+}
+
+.boardBtn.active .boardItemIcon {
+  filter: none;
+}
+
+.boardBtn .boardItemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boardBtn .boardItemCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.boardBtn .boardChevron {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.boardBtn.active {
+  border-color: #5ba466;
+  background: #f0f9f1;
 }
 
 .boardBtn:hover{
@@ -1584,24 +1621,53 @@ mark{
 }
 
 .spaceBtn {
-    width: 100%;
-    border: none;
-    background: transparent;
-    text-align: left;
-    font-size: 14px;
-    font-weight: 700;
-    color: #111827;
-    cursor: pointer;
-    padding: 10px 8px;
-    border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 16px);
+  margin: 3px 8px;
+  padding: 5px 12px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1;
+}
+
+.spaceBtn .spaceItemIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  filter: grayscale(1) opacity(0.4);
+}
+
+.spaceBtn.is-active .spaceItemIcon {
+  filter: none;
+}
+
+.spaceBtn .spaceItemName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spaceBtn .spaceChevron {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.spaceBtn.is-active {
+  border-color: #f96714;
+  background: #fff4ed;
 }
 
 .spaceBtn:hover {
     background: rgba(17,24,39,.04);
-}
-
-.spaceBtn.is-active {
-    background: rgba(17,24,39,.06);
 }
 
 /* =========================
@@ -1828,11 +1894,52 @@ mark{
 }
 
 .sideTab.active {
-    background: #F97316;
-    color: #ffffff;
     box-shadow: 0 1px 3px rgba(0,0,0,.12);
     border-color: transparent;
     margin-bottom: 0;
+}
+
+#tabSpace.active {
+  background: #F97316;
+  color: #ffffff;
+}
+
+#tabBoard.active {
+  background: #5ba466;  /* 원하는 색으로 */
+  color: #ffffff;
+}
+
+.panelHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4px;
+}
+
+#panelSpace .panelHeaderIcon {
+    width: 20px;
+    height: 20px;
+}
+
+#panelBoard .panelHeaderIcon {
+    width: 28px;
+    height: 28px;
+}
+
+.panelHeaderSub {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    display: block;
+}
+
+.emptyListMsg {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
 }
 
 /* 스페이스 목록 */
@@ -1867,10 +1974,6 @@ mark{
   cursor: pointer;
   padding: 6px 4px;
   border-radius: 6px;
-}
-
-.spaceItemName:hover {
-  background: rgba(17,24,39,.04);
 }
 
 .spaceItemActions {
