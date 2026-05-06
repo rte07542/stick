@@ -80,6 +80,9 @@ public class SpaceMemberController {
         SpaceMember me = spaceMemberService.getSpaceMember(spaceId, userId);
         SpaceMember target = spaceMemberService.getSpaceMember(spaceId, targetUserId);
 
+        if (target.getRole() == SpaceRole.OWNER) {
+            throw new IllegalArgumentException("OWNER는 내보낼 수 없습니다. 먼저 OWNER를 이전해야 합니다.");
+        }
         if (me.getRole() == SpaceRole.MEMBER) {
             throw new IllegalArgumentException("권한 없음");
         }

@@ -48,11 +48,6 @@ public class SpaceService {
         return spaceRepository.save(space); :
     */
 
-    public List<Space> getAllSpaces() {
-        return spaceRepository.findAll();
-    }
-    //space 테이블 내용 전체 불러오기. 컨트롤이 요청하면 레지스토리한테서 캐내옴
-
     public Space getSpaceById(Long id) {
         return spaceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Space가 없음. id=" + id));
@@ -74,5 +69,16 @@ public class SpaceService {
         return members.stream()
                 .map(SpaceMember::getSpace)
                 .toList();
+    }
+
+    @Transactional
+    public Space updateSpaceName(Long id, String name) {
+        Space space = getSpaceById(id);
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("스페이스 이름을 입력해야 합니다.");
+        }
+        space.setName(name);
+        return spaceRepository.save(space);
     }
 }

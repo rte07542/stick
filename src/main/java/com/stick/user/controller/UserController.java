@@ -65,4 +65,17 @@ public class UserController {
         String nickname = body.get("nickname");
         return UserResponse.from(userService.updateNickname(userId, nickname));
     }
+
+    @PatchMapping("/me/password")
+    public UserResponse updatePassword(@RequestBody java.util.Map<String, String> body,
+                                       HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+
+        String currentPassword = body.get("currentPassword");
+        String newPassword = body.get("newPassword");
+
+        return UserResponse.from(
+                userService.updatePassword(userId, currentPassword, newPassword)
+        );
+    }
 }

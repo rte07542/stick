@@ -1,5 +1,6 @@
 package com.stick.app.controller.memo;
 
+import com.stick.app.domain.memo.Memo;
 import com.stick.app.dto.MemoCreateRequest;
 import com.stick.app.dto.MemoResponse;
 import com.stick.app.dto.MemoUpdateRequest;
@@ -24,8 +25,15 @@ public class MemoController {
     private final UserService userService;
 
     @PostMapping
-    public MemoResponse createMemo(@Valid @RequestBody MemoCreateRequest request) {
-        return memoService.createMemo(request);
+    public MemoResponse createMemo(@Valid @RequestBody MemoCreateRequest request,
+                                   HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("userId");
+        Long spaceId = boardService.getBoardById(request.getBoardId()).getSpace().getId();
+        if (!spaceMemberService.isMember(spaceId,userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아닙니다.");
+        }
+
+        return memoService.createMemo(request, userId);
     }
 
     @GetMapping("/board/{boardId}")
@@ -43,8 +51,17 @@ public class MemoController {
     }
 
     @GetMapping("/{id}")
-    public MemoResponse getMemoById(@PathVariable Long id){
+    public MemoResponse getMemoById(@PathVariable Long id,
+                                    HttpServletRequest request){
+        Long userId = (Long) request.getAttribute("userId");
+
         var memo = memoService.getMemoById(id);
+        Long spaceId = memo.getBoard().getSpace().getId();
+
+        if (!spaceMemberService.isMember(spaceId, userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아닙니다.");
+        }
+
         return MemoResponse.from(memo, userService.getUserById(memo.getAuthorId()).getNickname());
     }
 
@@ -53,7 +70,7 @@ public class MemoController {
                                    @RequestBody MemoUpdateRequest req,
                                    HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        MemoResponse memo = MemoResponse.from(memoService.getMemoById(memoId));
+        Memo memo = memoService.getMemoById(memoId);
         if (!memo.getAuthorId().equals(userId)) {
             throw new IllegalArgumentException("수정 권한 없음");
         }
@@ -64,7 +81,7 @@ public class MemoController {
     @DeleteMapping("/{id}")
     public void deleteMemo(@PathVariable Long id, HttpServletRequest request){
         Long userId = (Long) request.getAttribute("userId");
-        MemoResponse memo = MemoResponse.from(memoService.getMemoById(id));
+        Memo memo = memoService.getMemoById(userId);
         if (!memo.getAuthorId().equals(userId)) {
             throw new IllegalArgumentException("삭제 권한 없음");
         }

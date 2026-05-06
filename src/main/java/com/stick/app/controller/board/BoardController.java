@@ -36,6 +36,9 @@ public class BoardController {
             @PathVariable Long spaceId,
             HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
+        if (!spaceMemberService.isMember(spaceId, userId)) {
+            throw new IllegalArgumentException("스페이스 멤버가 아닙니다.");
+        }
         return boardService.getBoardsBySpaceId(spaceId);
     }
 

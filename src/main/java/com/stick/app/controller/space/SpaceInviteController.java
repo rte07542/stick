@@ -2,6 +2,7 @@ package com.stick.app.controller.space;
 
 import com.stick.app.domain.space.Space;
 import com.stick.app.service.space.SpaceInviteService;
+import com.stick.app.service.space.SpaceMemberService;
 import com.stick.app.service.space.SpaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -14,12 +15,16 @@ import java.util.Map;
 @RequestMapping("/spaces")
 public class SpaceInviteController {
     private final SpaceInviteService spaceInviteService;
+    private final SpaceMemberService spaceMemberService;
     private final SpaceService spaceService;
 
     //초대코드 생성
     @PostMapping("/{spaceId}/invite")
     public String generateInviteCode(@PathVariable Long spaceId, HttpServletRequest request){
         Long userId = (Long) request.getAttribute("userId");
+        if(!spaceMemberService.isMember(spaceId, userId)){
+            throw new IllegalArgumentException("초대코드 생성 권한이 없습니다.");
+        }
         return spaceInviteService.createInvite(spaceId, userId);
     }
 

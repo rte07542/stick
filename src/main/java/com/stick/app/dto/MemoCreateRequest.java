@@ -15,8 +15,6 @@ public class MemoCreateRequest {
     @NotNull(message = "보드 ID가 필요합니다")
     private Long boardId;
 
-    private Long authorId;
-
     private String color;
 
     private List<Long> attachmentIds;

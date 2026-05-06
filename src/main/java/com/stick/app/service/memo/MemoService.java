@@ -25,20 +25,20 @@ public class MemoService {
     private final UserService userService;
 
     @Transactional
-    public MemoResponse createMemo(MemoCreateRequest request) {
+    public MemoResponse createMemo(MemoCreateRequest request, Long authorId) {
         Board board = boardRepository.findById(request.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 보드."));
 
         Memo memo = Memo.builder()
                 .content(request.getContent())
                 .board(board)
-                .authorId(request.getAuthorId())
+                .authorId(authorId)
                 .color(request.getColor())
                 .attachments(new ArrayList<>())
                 .build();
 
         Memo saveMemo = memoRepository.save(memo);
-        String nickname = userService.getUserById(request.getAuthorId()).getNickname();
+        String nickname = userService.getUserById(authorId).getNickname();
 
         if (request.getAttachmentIds() != null && !request.getAttachmentIds().isEmpty()) {
             List<UploadFile> files = uploadFileRepository.findAllById(request.getAttachmentIds());
@@ -91,12 +91,6 @@ public class MemoService {
         Memo memo = memoRepository.findById(id)
                 .orElseThrow(()->new IllegalArgumentException("해당 memo가 없음 id="+id));
         memoRepository.delete(memo);
-    }
-
-
-    private Board findBoardById(Long boardId){
-        return boardRepository.findById(boardId)
-                .orElseThrow(()->new IllegalArgumentException("해당 board가 없음. id"+boardId));
     }
 
 

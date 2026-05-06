@@ -3,7 +3,6 @@ package com.stick.app.controller.space;
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;
 import com.stick.app.domain.space.SpaceRole;
-import com.stick.app.dto.SpaceMemberResponse;
 import com.stick.app.service.space.SpaceMemberService;
 import com.stick.app.service.space.SpaceService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,5 +51,20 @@ public class SpaceController {
         }
         spaceService.deleteSpace(id);
     }
+
+    @PatchMapping("/{id}")
+    public Space updateSpace(@PathVariable Long id,
+                             @RequestBody java.util.Map<String, String> body,
+                             HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        SpaceMember member = spaceMemberService.getSpaceMember(id, userId);
+
+        if (member.getRole() != SpaceRole.OWNER) {
+            throw new IllegalArgumentException("OWNER만 스페이스 이름을 변경할 수 있습니다.");
+        }
+
+        return spaceService.updateSpaceName(id, body.get("name"));
+    }
+
 
 }

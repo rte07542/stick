@@ -29,13 +29,9 @@ public class MemoResponse {
                 .color(memo.getColor())
                 .createdAt(memo.getCreatedAt())
                 .updatedAt(memo.getUpdatedAt())
-                .attachments(
-                        memo.getAttachments() == null
-                        ? List.of()
-                                : memo.getAttachments().stream()
+                .attachments(memo.getAttachments().stream()
                                 .map(UploadFileResponse::from)
-                                .toList()
-                )
+                                .toList())
                 .build();
     }
 
@@ -49,13 +45,9 @@ public class MemoResponse {
                 .color(memo.getColor())
                 .createdAt(memo.getCreatedAt())
                 .updatedAt(memo.getUpdatedAt())
-                .attachments(
-                        memo.getAttachments() == null
-                        ? List.of()
-                                : memo.getAttachments().stream()
+                .attachments(memo.getAttachments().stream()
                                 .map(UploadFileResponse::from)
-                                .toList()
-                )
+                                .toList())
                 .build();
     }
 }

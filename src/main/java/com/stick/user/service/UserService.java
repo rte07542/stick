@@ -71,4 +71,33 @@ public class UserService {
         user.setNickname(nickname);
         return userRepository.save(user);
     }
+
+    public User updatePassword(Long userId, String currentPassword, String newPassword) {
+        User user = getUserById(userId);
+
+        if (currentPassword == null || currentPassword.isBlank()) {
+            throw new IllegalArgumentException("현재 비밀번호를 입력해야 합니다.");
+        }
+
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("새 비밀번호를 입력해야 합니다.");
+        }
+
+        if (!newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$])(?=.*\\d).{8,}$")) {
+            throw new IllegalArgumentException("새 비밀번호는 8자 이상이며 소문자, 대문자, 특수문자(!@#$)를 포함해야 합니다.");
+        }
+
+
+        if (!BCrypt.checkpw(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        if (BCrypt.checkpw(newPassword, user.getPassword())) {
+            throw new IllegalArgumentException("새 비밀번호와 현재 비밀번호가 같습니다.");
+        }
+
+        user.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+        return userRepository.save(user);
+    }
+
 }

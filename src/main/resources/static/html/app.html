@@ -5,6 +5,7 @@
     <meta content="width=device-width,initial-scale=1" name="viewport"/>
     <title>stick</title>
     <link href="../css/styles.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 </head>
 <body>
 <div class="app">
@@ -21,33 +22,13 @@
                 </button>
             </div>
 
-            <div class="sideTabs">
-                <button class="sideTab" id="tabSpace" type="button">스페이스</button>
-                <button class="sideTab active" id="tabBoard" type="button">보드</button>
-            </div>
-
-            <div class="sideMiddle" id="panelSpace">
-                <div class="panelHeader">
-                    <img class="panelHeaderIcon" src="../img/spaceIcon.svg" alt="">
-                    <div class="panelHeaderText">
-                        <span class="panelHeaderSub">여러 공간을 모아보기</span>
-                    </div>
-                </div>
+            <div class="sideMiddle" id="panelMain">
                 <div id="spaceList" class="spaceList"></div>
-                <button type="button" id="addSpaceBtn" class="addBoardBtn">스페이스 추가 +</button>
-            </div>
-
-            <div class="sideMiddle hidden" id="panelBoard">
-                <div class="panelHeader">
-                    <img class="panelHeaderIcon" src="../img/boardIcon.svg" alt="">
-                    <div class="panelHeaderText">
-                        <span class="panelHeaderSub" id="tabBoardSub">게시판</span>
-                    </div>
-                </div>
-                <div id="boardList" class="boardList"></div>
-                <div class="sideSectionHead">
-                    <button type="button" id="addBoardBtn" class="addBoardBtn" aria-label="보드 추가">보드 추가 +</button>
-                </div>
+                <div class="divider"></div>
+                <button type="button" id="addSpaceBtn" class="add-btn">
+                    <i class="ti ti-plus" style="font-size:16px;"></i>
+                    스페이스 추가
+                </button>
             </div>
 
             <div class="sideFooter userBar">
@@ -221,7 +202,6 @@
 <div class="spaceContextMenu hidden" id="spaceContextMenu">
     <button type="button" class="spaceContextItem" data-act="invite">초대코드 생성</button>
     <button type="button" class="spaceContextItem" data-act="settings">설정</button>
-    <button type="button" class="spaceContextItem danger" data-act="leave">나가기</button>
 </div>
 
 <div id="boardContextMenu" class="boardContextMenu hidden">

@@ -69,6 +69,9 @@ public class SpaceMemberService {
     public SpaceMember updateMemberRole(Long spaceId, Long targetUserId, SpaceRole newRole) {
         SpaceMember member = spaceMemberRepository.findBySpaceIdAndUserId(spaceId, targetUserId)
                 .orElseThrow(()->new IllegalArgumentException("해당 멤버 없음"));
+        if (member.getRole() == SpaceRole.OWNER && newRole != SpaceRole.OWNER) {
+            throw new IllegalArgumentException("OWNER는 직접 강등할 수 없습니다. 다른 멤버에게 OWNER를 이전해야 합니다.");
+        }
         // OWNER 이전 시 기존 OWNER를 ADMIN으로 강등
         if (newRole == SpaceRole.OWNER) {
             List<SpaceMember> currentOwners = spaceMemberRepository.findBySpaceIdAndRole(spaceId, SpaceRole.OWNER);
