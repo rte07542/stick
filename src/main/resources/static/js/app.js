@@ -1109,12 +1109,18 @@ function openNewMemoModal(initialFiles = []){
   const memoFileInput = qs("#memoFileInput", dialog);
   const memoAttachBtn = qs("#memoAttachBtn", dialog);
 
-  overlayCleanup = () => {
-    draftAttachments.forEach(a => URL.revokeObjectURL(a.objectUrl));
-  };
+  const draftAttachments = [];
 
     // ✅ 추가: 파일 선택 첨부
-    for(const file of initialFiles){
+    for(const file of
+  overlayCleanup = () => {
+                           draftAttachments.forEach(a => {
+                             if (a.objectUrl?.startsWith("blob:")) {
+                               URL.revokeObjectURL(a.objectUrl);
+                             }
+                           });
+                         };
+ initialFiles){
       if(!file?.type?.startsWith("image/")) continue;
       if(draftAttachments.length >= MAX_ATTACH) break;
 
