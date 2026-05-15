@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface SpaceInviteRepository extends JpaRepository<SpaceInvite, Long> {
     Optional<SpaceInvite> findByCode(String code);
+
+    void deleteBySpaceId(Long spaceId);
 }

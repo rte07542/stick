@@ -5,7 +5,7 @@
     <meta content="width=device-width,initial-scale=1" name="viewport"/>
     <title>stick</title>
     <link href="../css/styles.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 </head>
 <body>
 <div class="app">
@@ -91,6 +91,7 @@
                                         <input accept="image/*" hidden id="composerFile" multiple type="file"/>
 
                                         <textarea class="quickInput" id="quickInput"
+                                                  maxlength="2000"
                                                   placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                                         <div class="color-pick" id="quickColors">
@@ -117,6 +118,7 @@
                             <button aria-label="추가" class="composerPlus" id="composerPlusDock" type="button">+</button>
                             <input accept="image/*" hidden id="composerFileDock" multiple type="file"/>
                             <textarea class="quickInput" id="quickInputDock"
+                                      maxlength="2000"
                                       placeholder="채팅처럼 빠르게 메모 남기기"></textarea>
 
                             <div aria-label="색상 선택" class="color-pick" id="newColors">
@@ -146,7 +148,16 @@
 
 <div class="modalBackdrop hidden" id="spaceOnboardingModal">
     <div class="spaceOnboardingModal compact">
-        <h2 class="spaceOnboardingBrand">기존 스페이스에 입장하기</h2>
+        <h2 class="spaceOnboardingBrand">
+            <span class="spaceTitleIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z"></path>
+                    <path d="m5 7 7 5 7-5"></path>
+                    <path d="M8.5 15h7"></path>
+                </svg>
+            </span>
+            초대코드 입력
+        </h2>
 
         <input
                 id="inviteCodeInput"
@@ -168,7 +179,14 @@
 <div class="modalBackdrop hidden" id="createSpaceModal">
     <div class="spaceOnboardingModal compact">
 
-        <h2 class="spaceOnboardingBrand text">새 스페이스 만들기</h2>
+        <h2 class="spaceOnboardingBrand text">
+            <span class="spaceTitleIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+            </span>
+            새 스페이스 만들기
+        </h2>
 
         <input
                 id="createSpaceNameInput"
@@ -225,7 +243,8 @@
       letter-spacing:4px;
       color:#111827;
       margin-bottom:14px;
-    ">...</div>
+    ">...
+        </div>
         <button id="inviteCopyBtn" class="spaceJoinBtn">복사하기</button>
     </div>
 </div>

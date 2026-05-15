@@ -1,8 +1,11 @@
 package com.stick.app.service.space;
 
+import com.stick.app.domain.board.Board;
 import com.stick.app.domain.space.Space;
 import com.stick.app.domain.space.SpaceMember;
 import com.stick.app.domain.space.SpaceRole;
+import com.stick.app.repository.board.BoardRepository;
+import com.stick.app.repository.space.SpaceInviteRepository;
 import com.stick.app.repository.space.SpaceMemberRepository;
 import com.stick.app.repository.space.SpaceRepository;
 import com.stick.user.domain.User;
@@ -26,6 +29,8 @@ public class SpaceService {
     private final UserService userService;
     private final SpaceMemberService spaceMemberService;
     private final SpaceMemberRepository spaceMemberRepository;
+    private final SpaceInviteRepository spaceInviteRepository;
+    private final BoardRepository boardRepository;
 
     @Transactional
     public Space createSpace(String name, Long ownerId, String description) {
@@ -38,6 +43,14 @@ public class SpaceService {
 
         Space savedSpace = spaceRepository.save(space);
         spaceMemberService.addMember(savedSpace.getId(), creator.getId(), SpaceRole.OWNER);
+
+        Board defaultBoard = Board.builder()
+                .name("일반")
+                .space(savedSpace)
+                .sortOrder(0)
+                .description("")
+                .build();
+        savedSpace.getBoards().add(boardRepository.save(defaultBoard));
 
         return savedSpace;
     }
@@ -59,7 +72,8 @@ public class SpaceService {
     public void deleteSpace(Long id) {
         Space space = spaceRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 Space가 없음. id=" + id));
-
+        spaceInviteRepository.deleteBySpaceId(id);
+        spaceMemberRepository.deleteBySpaceId(id);
         spaceRepository.delete(space);
     }
     //전달 받은 id의 Space를 db에서 지우는 함수

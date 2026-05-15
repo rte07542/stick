@@ -1,4 +1,4 @@
-// app.js (front only, refactored - single file)
+﻿// app.js (front only, refactored - single file)
 
 const qs = (sel, root = document) => root.querySelector(sel);
 
@@ -435,30 +435,20 @@ function openViewModal(id){
   if(!el.modalRoot) return;
 
   el.modalRoot.innerHTML = `
-    <div class="dialog noteDialog" id="viewMemoDialog" style="width:min(680px, 92vw);">
+    <div class="dialog noteDialog viewMemoDialog" id="viewMemoDialog">
       <div class="dialogBody">
-
-        <!-- 1줄: 작성자 + x -->
-        <div class="viewTop"
-             style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;">
+        <div class="viewTop" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;">
           <div style="font-size:12px;font-weight:900;color:var(--muted);">
             <span id="viewAuthor"></span>
           </div>
-          <button class="dialogClose" type="button" id="viewCloseBtn" aria-label="닫기">✕</button>
+          <button class="dialogClose" type="button" id="viewCloseBtn" aria-label="닫기">x</button>
         </div>
 
-        <!-- 2줄: 첨부이미지 -->
-        <div id="viewAttachments" style="display:none; flex-direction:row; gap:8px; margin-top:10px; overflow-x:auto;"></div>
+        <div id="viewAttachments" class="viewAttachments" style="display:none;"></div>
 
-        <!-- 2.5줄: 내용 -->
-        <div id="viewContent"
-                     style="white-space:pre-wrap;font-size:14px;font-weight:800;color:#111827;line-height:1.6;">
-                </div>
+        <div id="viewContent" style="white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-size:14px;font-weight:800;color:#111827;line-height:1.6;"></div>
 
-        <!-- 3줄: 시간(수정됨) + 버튼 -->
-        <div class="viewBottom"
-             style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-
+        <div class="viewBottom" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
           <div style="font-size:12px;font-weight:900;color:var(--muted);">
             <span id="viewTime"></span>
             <span id="viewEdited" style="margin-left:6px;opacity:.9;"></span>
@@ -470,25 +460,32 @@ function openViewModal(id){
               <button class="btn" type="button" id="deleteBtn">삭제</button>
             ` : ``}
           </div>
-
         </div>
       </div>
+    </div>
+    <div class="imageLightbox hidden" id="imageLightbox">
+      <img id="imageLightboxImg" alt="첨부 이미지 확대" />
     </div>
   `;
 
   const dialog = qs("#viewMemoDialog");
+  const attachmentCount = m.attachments?.length ?? 0;
+  const hasContent = m.content.trim().length > 0;
+  if (attachmentCount > 0) dialog.classList.add("hasAttachments");
 
-  if(m.content.length < 80){
-    dialog.classList.add("small");
-  }else{
-    dialog.classList.add("large");
+  if (attachmentCount === 0) {
+    dialog.classList.add(m.content.length < 80 ? "textSmall" : "textLarge");
+  } else if (attachmentCount === 1 && !hasContent) {
+    dialog.classList.add("imageSingle");
+  } else if (attachmentCount === 1) {
+    dialog.classList.add("mixedSingle");
+  } else {
+    dialog.classList.add("imageMultiple");
   }
 
-  // 메모 색 입히기
   COLOR_CLASSES.forEach(c => dialog.classList.remove(c));
   dialog.classList.add(m.color || "yellow");
 
-  // 안전 렌더
   qs("#viewAuthor", dialog).textContent = canEdit
       ? `${m.authorNickname ?? m.authorId} (나)`
       : `${m.authorNickname ?? m.authorId}`;
@@ -496,16 +493,56 @@ function openViewModal(id){
   qs("#viewEdited", dialog).textContent = isEdited ? "(수정됨)" : "";
   qs("#viewContent", dialog).innerHTML = linkify(escapeHTML(m.content).replaceAll("\n","<br/>"));
 
-  // 첨부 이미지 렌더
   const viewAtt = qs("#viewAttachments", dialog);
-  if (viewAtt && m.attachments && m.attachments.length > 0) {
+  if (viewAtt && attachmentCount > 0) {
     viewAtt.style.display = "flex";
-    viewAtt.innerHTML = m.attachments.map(att => `
-      <img src="${att.url}" alt="첨부 이미지"
-        style="height:200px; width:auto; border-radius:10px; object-fit:cover; cursor:pointer; flex-shrink:0;"
-        onclick="window.open('${att.url}', '_blank')"
-      />
-    `).join("");
+    viewAtt.innerHTML = "";
+
+    let currentAttachmentIndex = 0;
+    viewAtt.innerHTML = `
+      <button class="viewImageNav prev" type="button" aria-label="이전 이미지">‹</button>
+      <button class="viewAttachmentButton" type="button" aria-label="현재 이미지 확대">
+        <img id="viewAttachmentImage" alt="첨부 이미지" />
+      </button>
+      <button class="viewImageNav next" type="button" aria-label="다음 이미지">›</button>
+      <span class="viewImageCount" id="viewImageCount"></span>
+    `;
+
+    const imageBtn = qs(".viewAttachmentButton", viewAtt);
+    const imageEl = qs("#viewAttachmentImage", viewAtt);
+    const prevBtn = qs(".viewImageNav.prev", viewAtt);
+    const nextBtn = qs(".viewImageNav.next", viewAtt);
+    const countEl = qs("#viewImageCount", viewAtt);
+
+    const renderAttachment = () => {
+      const current = m.attachments[currentAttachmentIndex];
+      imageEl.src = current.url;
+      countEl.textContent = `${currentAttachmentIndex + 1}/${attachmentCount}`;
+      const hasMultiple = attachmentCount > 1;
+      prevBtn.hidden = !hasMultiple;
+      nextBtn.hidden = !hasMultiple;
+      countEl.hidden = !hasMultiple;
+    };
+
+    prevBtn.addEventListener("click", () => {
+      currentAttachmentIndex = (currentAttachmentIndex - 1 + attachmentCount) % attachmentCount;
+      renderAttachment();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentAttachmentIndex = (currentAttachmentIndex + 1) % attachmentCount;
+      renderAttachment();
+    });
+
+    imageBtn.addEventListener("click", () => {
+      const lightbox = qs("#imageLightbox");
+      const lightboxImg = qs("#imageLightboxImg");
+      if(!lightbox || !lightboxImg) return;
+      lightboxImg.src = m.attachments[currentAttachmentIndex].url;
+      lightbox.classList.remove("hidden");
+    });
+
+    renderAttachment();
   }
 
   qs("#viewCloseBtn", dialog)?.addEventListener("click", closeOverlay);
@@ -513,12 +550,11 @@ function openViewModal(id){
   if(canEdit){
     qs("#editBtn", dialog)?.addEventListener("click", () => openEditModal(id));
     qs("#deleteBtn", dialog)?.addEventListener("click", () => {
-      if(confirm("삭제할거임?")) deleteMemo(id);
+      if(confirm("삭제할까요?")) deleteMemo(id);
       closeOverlay();
     });
   }
 }
-
 function openEditModal(id){
   const m = state.data.memos.find(x => x.id === id);
   if(!m) return;
@@ -538,7 +574,7 @@ function openEditModal(id){
       </div>
 
       <div class="dialogBody">
-        <textarea id="editText" class="dialogText" placeholder="메모를 입력..."></textarea>
+        <textarea id="editText" class="dialogText" maxlength="2000" placeholder="메모를 입력..."></textarea>
         <div class="attachPreview" id="editAttachPreview"></div>
         <div class="memoAttachBar">
           <input type="file" id="editFileInput" multiple hidden>
@@ -913,12 +949,12 @@ function renderBoard(){
   el.board.innerHTML = "";
 
   memos.forEach(m => {
-    const size = getNoteSize(m.content);
+    const hasAttachments = m.attachments && m.attachments.length > 0;
+    const size = hasAttachments ? "small" : getNoteSize(m.content);
     const canDelete = (String(m.authorId) === String(state.me));
 
     const card = document.createElement("div");
-    card.className = `note ${m.color} ${size}` + (canDelete ? " canDelete" : "");
-    card.style.height = "auto";
+    card.className = `note ${m.color} ${size}` + (hasAttachments ? " hasImage" : "") + (canDelete ? " canDelete" : "");
     card.dataset.id = m.id;
 
     const head = document.createElement("div");
@@ -944,27 +980,28 @@ function renderBoard(){
 
     const body = document.createElement("div");
     body.className = "body";
-    body.style.cssText = "overflow:hidden; text-overflow:ellipsis; white-space:nowrap;";
     body.innerHTML = highlight(m.content, q);
 
     card.appendChild(head);  // 닉네임/X 항상 최상단
 
-    if (m.attachments && m.attachments.length > 0) {
+    if (hasAttachments) {
+      const extraImageCount = m.attachments.length - 1;
       const imgWrap = document.createElement("div");
-      imgWrap.className = "noteImages";
-      imgWrap.style.cssText = "width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:8px; position:relative; margin-bottom:6px;";
+      imgWrap.className = "noteImages" + (extraImageCount > 0 ? " hasMultiple" : "");
 
       const img = document.createElement("img");
       img.src = m.attachments[0].url;
       img.alt = "첨부 이미지";
-      img.style.cssText = "width:100%; height:100%; object-fit:cover;";
-
-      const badge = document.createElement("span");
-      badge.className = "noteImgCount";
-      badge.textContent = `1/${m.attachments.length}`;
 
       imgWrap.appendChild(img);
-      imgWrap.appendChild(badge);
+
+      if (extraImageCount > 0) {
+        const badge = document.createElement("span");
+        badge.className = "noteImgCount";
+        badge.textContent = `+${extraImageCount}`;
+        imgWrap.appendChild(badge);
+      }
+
       card.appendChild(imgWrap);
     }
 
@@ -1072,7 +1109,7 @@ function openNewMemoModal(initialFiles = []){
       </div>
 
       <div class="dialogBody">
-        <textarea id="newText" class="dialogText" placeholder="메모를 입력..."></textarea>
+        <textarea id="newText" class="dialogText" maxlength="2000" placeholder="메모를 입력..."></textarea>
         <div class="attachPreview" id="attachPreview"></div>
                 <div class="memoAttachBar">
                   <input type="file" id="memoFileInput" multiple hidden>
@@ -1112,15 +1149,14 @@ function openNewMemoModal(initialFiles = []){
   const draftAttachments = [];
 
     // ✅ 추가: 파일 선택 첨부
-    for(const file of
   overlayCleanup = () => {
-                           draftAttachments.forEach(a => {
-                             if (a.objectUrl?.startsWith("blob:")) {
-                               URL.revokeObjectURL(a.objectUrl);
-                             }
-                           });
-                         };
- initialFiles){
+      draftAttachments.forEach(a => {
+           if (a.objectUrl?.startsWith("blob:")) {
+             URL.revokeObjectURL(a.objectUrl);
+            }
+       });
+  };
+  for(const file of initialFiles){
       if(!file?.type?.startsWith("image/")) continue;
       if(draftAttachments.length >= MAX_ATTACH) break;
 
@@ -1474,6 +1510,14 @@ function onOverlayPointerDown(e){
   if(!el.overlay) return;
 
   if(overlayMode === "modal"){
+    const lightbox = el.modalRoot?.querySelector("#imageLightbox:not(.hidden)");
+    if(lightbox){
+      if(e.target === lightbox){
+        lightbox.classList.add("hidden");
+      }
+      return;
+    }
+
     const dialog = el.modalRoot?.querySelector(".dialog");
     if(dialog && !dialog.contains(e.target)) closeOverlay();
   }
@@ -3185,3 +3229,4 @@ function init() {
 
 
 init();
+
